@@ -1,0 +1,54 @@
+.testBox {
+    width: 200px;
+    height: 200px;
+    border: 2px solid rebeccapurple;
+    animation-timing-function: cubic-bezier(0.22, 1.23, 0.97, 0.89);
+}
+
+.loading {
+    width: 50px;
+    height: 50px;
+    animation: rotate 2s linear 0s infinite;
+}
+
+.path {
+    animation: dash 2s ease-in-out infinite;
+    stroke: #00b390;
+    stroke-width: 2;
+    stroke-dasharray: 90 150;
+    stroke-dashoffset: 0;
+    stroke-linecap: round;
+}
+
+@keyframes rotate {
+
+    /* stylelint-disable-next-line rule-empty-line-before */
+    from {
+        /* stylelint-disable-next-line property-no-unknown */
+        tranform: rotate(0deg);
+    }
+
+    to {
+        /* stylelint-disable-next-line property-no-unknown */
+        tranform: rotate(360deg);
+    }
+}
+
+@keyframes dash {
+
+    /* stylelint-disable-next-line rule-empty-line-before */
+    0% {
+        stroke-dasharray: 1 150;
+        stroke-dashoffset: 0;
+    }
+
+    50% {
+        stroke-dasharray: 90 150;
+        stroke-dashoffset: -40px;
+    }
+
+    100% {
+        stroke-dasharray: 90 150;
+        stroke-dashoffset: -120px;
+    }
+}
