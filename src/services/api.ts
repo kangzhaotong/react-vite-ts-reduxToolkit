@@ -45,3 +45,8 @@ export const fetchArticleList = (params: any) =>
  */
 export const getRules = (params: any) =>
   axios.post<any, API.List<API.RuleItem[]>>('/Rule/List', params);
+
+
+// 测试swr接口
+export const fetSwr = () =>
+  axios.get<API.AnalysisChartData>('/AnalysisChart').then((res) => res);

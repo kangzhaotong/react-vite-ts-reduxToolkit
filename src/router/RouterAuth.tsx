@@ -18,7 +18,7 @@ export default function RouterAuth() {
   });
 
   useEffect(() => {
-    // console.log(run, 'runrunrun');
+    console.log(run, 'runrunrun');
     run();
   }, [location]);
 

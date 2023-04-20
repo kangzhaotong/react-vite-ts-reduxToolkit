@@ -1,3 +1,9 @@
+/*
+ * @Author: M78.Kangzhaotong
+ * @Date: 2023-04-03 16:27:20
+ * @Last Modified by:   M78.Kangzhaotong
+ * @Last Modified time: 2023-04-03 16:27:20
+ */
 import { Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Layout } from 'antd';

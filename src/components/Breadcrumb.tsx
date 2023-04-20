@@ -1,4 +1,10 @@
-import React from 'react';
+/*
+ * @Author: M78.Kangzhaotong
+ * @Date: 2023-04-03 16:26:38
+ * @Last Modified by:   M78.Kangzhaotong
+ * @Last Modified time: 2023-04-03 16:26:38
+ */
+import React, { useMemo } from 'react';
 import { Breadcrumb } from 'antd';
 import { Link } from 'react-router-dom';
 import { selectBreadcrumb, setBreadcrumb } from '@/store/reducer/layoutSlice';
@@ -11,19 +17,19 @@ import { MenuItem } from '@/config';
  */
 export default function LayoutBreadcrumb() {
   const breadcrumb = useAppSelector(selectBreadcrumb);
-  return breadcrumb.length > 0 ? (
-    <Breadcrumb separator=">">
-      {breadcrumb.map((item, index) => {
+  const breadItems = useMemo(
+    () =>
+      breadcrumb.map((item, index) => {
         if (typeof item === 'object') {
-          return (
-            <Breadcrumb.Item key={index}>
-              <Link to={item.path}>{item.name}</Link>
-            </Breadcrumb.Item>
-          );
+          return { title: <Link to={item.path}>{item.name}</Link> };
         }
-        return <Breadcrumb.Item key={index}>{item}</Breadcrumb.Item>;
-      })}
-    </Breadcrumb>
+        return { title: item };
+      }),
+    [breadcrumb]
+  );
+
+  return breadcrumb.length > 0 ? (
+    <Breadcrumb separator=">" items={breadItems} />
   ) : (
     <div style={{ height: 16 }} />
   );

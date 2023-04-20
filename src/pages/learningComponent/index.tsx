@@ -2,7 +2,7 @@
  * @Author: M78.Kangzhaotong
  * @Date: 2022-12-27 16:21:30
  * @Last Modified by: M78.Kangzhaotong
- * @Last Modified time: 2023-03-30 18:36:39
+ * @Last Modified time: 2023-04-03 18:30:12
  */
 import React, {
   useState,
@@ -26,9 +26,8 @@ import {
 } from '@/store/reducer/counterSlice';
 import { useAppDispatch, useAppSelector } from '@/hooks/useAppHooks';
 import useDeboundce from '@/hooks/useDebounce';
-import { fetchAnalysisChart } from '@/services/api';
 import styles from './index.module.less';
-
+import { fetSwr } from '@/services/api';
 interface params {
   data: string;
   handelClick: () => void;
@@ -38,12 +37,13 @@ const Child: React.FC<params> = ({ data, handelClick }) => {
   console.log('child');
   return <Button onClick={() => handelClick()}>{data}</Button>;
 };
-const UseMemoChild = React.memo<any>(Child);
+const UseMemoChild = React.memo(Child);
 
 const Home: React.FC<any> = () => {
   const inputRef = useRef<any>();
   const dispatch = useAppDispatch();
   const counter = useAppSelector((state: RootState) => state.counter.value);
+  const { data } = useSWR('/analysisChart', fetSwr);
   const [name, setName] = useState('aaaa');
   const [value, setValue] = useState('');
   const [isTransition, setTransion] = useState(false);
@@ -54,10 +54,9 @@ const Home: React.FC<any> = () => {
 
   const debounceValue = useDeboundce({ value, delay: 2000 });
 
-  const data = useMemo(() => name, [name]);
+  const dataName = useMemo(() => name, [name]);
   const dealName = (restName: string) => {
     test.set('aa', 11);
-    console.log(test.get('aa'), test.keys(), 'ceshi1shuju1zas');
     const newName = `${restName}ceshi`;
     setName(newName);
   };
@@ -71,14 +70,10 @@ const Home: React.FC<any> = () => {
     });
   };
   const transitionHandle = () => {
-    const loginData = useSWR('echars-api', fetchAnalysisChart);
-    console.log(loginData, 'loginDataloginDataloginDataloginDataloginData');
+    console.log(data, 'testtesttesttest');
     dispatch(incrementByAmount(1));
     setTransion(!isTransition);
   };
-  useEffect(() => {
-    console.log(debounceValue, counter, 'hahahahah');
-  }, [debounceValue, counter]);
 
   return (
     <div className="app">
@@ -93,13 +88,16 @@ const Home: React.FC<any> = () => {
         <Button type="primary" onClick={startTransition}>
           测试
         </Button>
+        <div>
+          {debounceValue} {JSON.stringify(data)}
+        </div>
         {/* {isPendding ? 'hahahahah' : <div>asdasdadaddadadas</div>} */}
         <Input
           style={{ width: 200 }}
           ref={inputRef}
           // onChange={(val) => handelInputChange(val)}
         />
-        <UseMemoChild data={data} handelClick={changeName} />
+        <UseMemoChild data={dataName} handelClick={changeName} />
         <div className={styles.testBox}>测试盒子{counter}</div>
       </div>
       <svg className={styles.loading} viewBox="25 25 50 50">

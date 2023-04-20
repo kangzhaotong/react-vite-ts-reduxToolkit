@@ -10,7 +10,7 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'http://baidu.com',
+        target: '127.0.0.1:3008',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
