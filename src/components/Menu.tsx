@@ -1,8 +1,8 @@
 /*
  * @Author: M78.Kangzhaotong
  * @Date: 2023-04-03 16:26:59
- * @Last Modified by:   M78.Kangzhaotong
- * @Last Modified time: 2023-04-03 16:26:59
+ * @Last Modified by: M78.Kangzhaotong
+ * @Last Modified time: 2023-05-29 15:05:36
  */
 import {
   useNavigate,
@@ -19,6 +19,7 @@ import DynamicIcons from './DynamicIcons';
 import { useBreadcrumbfromMenuData } from './Breadcrumb';
 import { flatArrTree } from '@/utils/utils';
 import { useSetState } from 'ahooks';
+import { useAppSelector } from '@/hooks/useAppHooks';
 import type { SetState } from 'ahooks/es/useSetState';
 import * as config from '@/config';
 import type { MenuItem } from '@/config';
@@ -31,6 +32,8 @@ interface State {
 
 export default function LayoutMenu() {
   const navigate = useNavigate();
+
+  const { layout } = useAppSelector((state) => state.layout);
 
   const menuData = useMenuData();
   const [state, setState] = useSetState<State>({
@@ -73,8 +76,8 @@ export default function LayoutMenu() {
   return (
     <Menu
       id="custom-menu-popup"
-      theme="dark"
-      mode="inline"
+      theme={layout === 'top' ? 'light' : 'dark'}
+      mode={layout === 'top' ? 'horizontal' : 'inline'}
       selectedKeys={[state.selectKey]}
       onClick={({ key, keyPath, domEvent }) => {
         setState({ selectKey: key });

@@ -10,12 +10,14 @@ import LocalSettingsHeaderButton from './LocalSettings';
 import { FullScreenHeaderButton } from './FullScreen';
 import NoticeHeaderButton from './NoticeIcon';
 import HeaderButton from './HeaderButton';
+import LayoutMenu from './Menu';
+
 const { Header } = Layout;
 
 export default function LayoutHeader() {
   const isDarkMode = useAppSelector(selectIsDarkMode);
   const dispatch = useAppDispatch();
-  const { collapsed } = useAppSelector((state) => state.layout);
+  const { collapsed, layout } = useAppSelector((state) => state.layout);
   return (
     <Header
       style={{
@@ -37,6 +39,11 @@ export default function LayoutHeader() {
             <LayoutBreadcrumb />
           </Space>
         </Col>
+        {layout === 'top' ? (
+          <Col span={18}>
+            <LayoutMenu />
+          </Col>
+        ) : null}
         <Col>
           <Space>
             <FullScreenHeaderButton />

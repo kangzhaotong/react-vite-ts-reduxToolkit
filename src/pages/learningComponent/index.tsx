@@ -2,7 +2,7 @@
  * @Author: M78.Kangzhaotong
  * @Date: 2022-12-27 16:21:30
  * @Last Modified by: M78.Kangzhaotong
- * @Last Modified time: 2023-04-03 18:30:12
+ * @Last Modified time: 2023-05-22 13:53:18
  */
 import React, {
   useState,
@@ -45,11 +45,13 @@ const Home: React.FC<any> = () => {
   const counter = useAppSelector((state: RootState) => state.counter.value);
   const { data } = useSWR('/analysisChart', fetSwr);
   const [name, setName] = useState('aaaa');
+  const [inputCurrentVal, setInputCurrentVal] = useState('aaaa');
   const [value, setValue] = useState('');
   const [isTransition, setTransion] = useState(false);
   const [isPendding, setMyTransition] = useTransition();
   const test = new Map();
 
+  const deferredValue = useDeferredValue(inputCurrentVal);
   const changeName = useCallback(() => dealName(name), [name]);
 
   const debounceValue = useDeboundce({ value, delay: 2000 });
@@ -95,11 +97,12 @@ const Home: React.FC<any> = () => {
         <Input
           style={{ width: 200 }}
           ref={inputRef}
-          // onChange={(val) => handelInputChange(val)}
+          onChange={(val) => setInputCurrentVal(val.target.value)}
         />
         <UseMemoChild data={dataName} handelClick={changeName} />
         <div className={styles.testBox}>测试盒子{counter}</div>
       </div>
+      <div>这是inputdeferredValuevalue {deferredValue}</div>
       <svg className={styles.loading} viewBox="25 25 50 50">
         <circle cx="50" cy="50" r="25" className={styles.path} fill="none" />
       </svg>

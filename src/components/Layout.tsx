@@ -1,8 +1,8 @@
 /*
  * @Author: M78.Kangzhaotong
  * @Date: 2023-04-03 16:27:20
- * @Last Modified by:   M78.Kangzhaotong
- * @Last Modified time: 2023-04-03 16:27:20
+ * @Last Modified by: M78.Kangzhaotong
+ * @Last Modified time: 2023-05-29 15:08:57
  */
 import { Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
@@ -16,28 +16,30 @@ import Footer from './Footer';
 const { Sider, Content } = Layout;
 
 export default function AdminLayout() {
-  const { collapsed } = useAppSelector((state) => state.layout);
+  const { collapsed, layout } = useAppSelector((state) => state.layout);
   return (
     <Layout hasSider>
-      <Sider
-        width={260}
-        collapsedWidth={80}
-        trigger={null}
-        // collapsible
-        collapsed={collapsed}
-      >
-        <div
-          style={{
-            overflowY: 'auto',
-            height: '100vh',
-            position: 'sticky',
-            top: 0
-          }}
+      {layout === 'side' ? (
+        <Sider
+          width={260}
+          collapsedWidth={80}
+          trigger={null}
+          // collapsible
+          collapsed={collapsed}
         >
-          <Logo />
-          <LayoutMenu />
-        </div>
-      </Sider>
+          <div
+            style={{
+              overflowY: 'auto',
+              height: '100vh',
+              position: 'sticky',
+              top: 0
+            }}
+          >
+            <Logo />
+            <LayoutMenu />
+          </div>
+        </Sider>
+      ) : null}
       <Layout className="site-layout">
         <LayoutHeader />
         <Content className="site-content">
