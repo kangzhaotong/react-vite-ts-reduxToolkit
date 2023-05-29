@@ -4,7 +4,6 @@ import type { RadioChangeEvent } from 'antd';
 import { SettingOutlined } from '@ant-design/icons';
 import type { DrawerProps, ButtonProps } from 'antd';
 import { DarkModeSwitch } from './DarkModeSwitch';
-import { useAppSelector, useAppDispatch } from '@/hooks/useAppHooks';
 import { setLayout } from '@/store/reducer/layoutSlice';
 import { ThemeColorsSelect } from './ThemeColors';
 import HeaderButton from './HeaderButton';

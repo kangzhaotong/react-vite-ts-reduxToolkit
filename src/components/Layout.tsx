@@ -2,7 +2,7 @@
  * @Author: M78.Kangzhaotong
  * @Date: 2023-04-03 16:27:20
  * @Last Modified by: M78.Kangzhaotong
- * @Last Modified time: 2023-05-29 15:08:57
+ * @Last Modified time: 2023-05-29 15:14:24
  */
 import { Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
@@ -10,7 +10,6 @@ import { Layout } from 'antd';
 import LayoutMenu from './Menu';
 import LayoutHeader from './Header';
 import Loading from './Loading';
-import { useAppSelector } from '@/hooks/useAppHooks';
 import Logo from './Logo';
 import Footer from './Footer';
 const { Sider, Content } = Layout;

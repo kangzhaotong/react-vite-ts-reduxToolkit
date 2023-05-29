@@ -2,7 +2,7 @@
  * @Author: M78.Kangzhaotong
  * @Date: 2022-12-27 16:21:30
  * @Last Modified by: M78.Kangzhaotong
- * @Last Modified time: 2023-05-22 13:53:18
+ * @Last Modified time: 2023-05-29 15:17:28
  */
 import React, {
   useState,
@@ -24,8 +24,6 @@ import {
   decrement,
   incrementByAmount
 } from '@/store/reducer/counterSlice';
-import { useAppDispatch, useAppSelector } from '@/hooks/useAppHooks';
-import useDeboundce from '@/hooks/useDebounce';
 import styles from './index.module.less';
 import { fetSwr } from '@/services/api';
 interface params {
@@ -54,7 +52,7 @@ const Home: React.FC<any> = () => {
   const deferredValue = useDeferredValue(inputCurrentVal);
   const changeName = useCallback(() => dealName(name), [name]);
 
-  const debounceValue = useDeboundce({ value, delay: 2000 });
+  const debounceValue = useDebounce({ value, delay: 2000 });
 
   const dataName = useMemo(() => name, [name]);
   const dealName = (restName: string) => {

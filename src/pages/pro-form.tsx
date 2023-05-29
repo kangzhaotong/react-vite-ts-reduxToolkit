@@ -11,7 +11,3 @@ export default () => {
     </ProForm>
   );
 };
-
-// export default function ProForm() {
-//   return <h1>ProForm Page</h1>;
-// }
