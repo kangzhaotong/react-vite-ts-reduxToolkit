@@ -1,5 +1,5 @@
 import { lazy } from 'react';
-import { createBrowserRouter } from 'react-router-dom';
+import { createHashRouter } from 'react-router-dom';
 import type { RouteObject } from 'react-router-dom';
 import RouterAuth from './RouterAuth';
 import { ErrorPage } from '@/components/ErrorBoundary';
@@ -60,6 +60,6 @@ export const routes: RouteObject[] = [
   }
 ];
 
-export default createBrowserRouter(routes, {
+export default createHashRouter(routes, {
   basename: import.meta.env.BASE_URL
 });

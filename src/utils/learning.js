@@ -355,16 +355,16 @@
 //   return res
 // }
 // console.log(floorFun(4), 'floorFun(3)floorFun(3)floorFun(3)floorFun(3)floorFun(3)')
-// const arrList = [
-//   { id: 1, name: '部门1', pid: 0 },
-//   { id: 2, name: '部门2', pid: 1 },
-//   { id: 3, name: '部门3', pid: 1 },
-//   { id: 4, name: '部门4', pid: 3 },
-//   { id: 5, name: '部门5', pid: 4 },
-//   { id: 6, name: '部门6', pid: 0 },
-//   { id: 7, name: '部门7', pid: 6 },
-//   { id: 8, name: '部门7', pid: 0 },
-// ]
+const arrList = [
+  { id: 1, name: '部门1', pid: 0 },
+  { id: 2, name: '部门2', pid: 1 },
+  { id: 3, name: '部门3', pid: 1 },
+  { id: 4, name: '部门4', pid: 3 },
+  { id: 5, name: '部门5', pid: 4 },
+  { id: 6, name: '部门6', pid: 0 },
+  { id: 7, name: '部门7', pid: 6 },
+  { id: 8, name: '部门7', pid: 0 },
+]
 
 // const treeArray = (arr) => {
 //   const result = []
@@ -392,32 +392,32 @@
 //   })
 //   return JSON.stringify(result)
 // }
-// const dealFun = (arrList) => {
-//   const result = []
-//   const midMap = {}
-//   arrList.forEach((v) => {
-//     const { id, pid } = v
-//     if (!midMap[id]) {
-//       midMap[id] = {
-//         children: [],
-//       }
-//     }
-//     midMap[id] = {
-//       ...v,
-//       children: midMap[id].children,
-//     }
-//     if (!pid) {
-//       result.push(midMap[id])
-//     } else if (midMap[pid]) {
-//       midMap[pid].children.push(midMap[id])
-//     } else {
-//       midMap[pid] = {
-//         children: [],
-//       }
-//     }
-//   })
-//   return result
-// }
+const dealFun = (arrList) => {
+  const result = []
+  const midMap = {}
+  arrList.forEach((v) => {
+    const { id, pid } = v
+    if (!midMap[id]) {
+      midMap[id] = {
+        children: [],
+      }
+    }
+    midMap[id] = {
+      ...v,
+      children: midMap[id].children,
+    }
+    if (!pid) {
+      result.push(midMap[id])
+    } else if (midMap[pid]) {
+      midMap[pid].children.push(midMap[id])
+    } else {
+      midMap[pid] = {
+        children: [],
+      }
+    }
+  })
+  return result
+}
 // console.log(treeArray(arrList), 'dealFundealFundealFundealFun')
 // function testFun() {
 //   console.log('this is test')

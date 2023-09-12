@@ -17,6 +17,7 @@ export default defineConfig({
     },
     open: 'index.html'
   },
+  base: './',
   resolve: {
     alias: {
       '@': resolve(__dirname, './src')
