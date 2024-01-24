@@ -23,7 +23,7 @@ import loadingReducer from './reducer/loadingSlice';
 
 const rootReducer = combineReducers({
   loading: loadingReducer,
-  counter: counterReducer,
+  counter: persistReducer({ key: 'counter', storage }, counterReducer),
   user: persistReducer(
     {
       key: 'user',

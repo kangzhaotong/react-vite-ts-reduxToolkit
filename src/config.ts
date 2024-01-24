@@ -64,6 +64,11 @@ export const MenuData: MenuItem[] = [
     label: '测试页',
     icon: 'HomeOutlined',
     route: '/test'
+  },
+  {
+    label: 'Three3D地图',
+    icon: 'HomeOutlined',
+    route: '/threeMapDemo'
   }
 ]; // 本地菜单数据
 export interface MenuItem {

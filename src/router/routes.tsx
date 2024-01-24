@@ -6,6 +6,7 @@ import { ErrorPage } from '@/components/ErrorBoundary';
 
 const Layout = lazy(() => import('@/components/Layout'));
 const Login = lazy(() => import('@/pages/login/Login'));
+const ThreeMapDemo = lazy(() => import('@/pages/threeMapDemo/index'));
 const NotFound = lazy(() => import('@/pages/404'));
 const Test = lazy(() => import('@/pages/test'));
 const Learning = lazy(() => import('@/pages/learningComponent'));
@@ -39,6 +40,10 @@ export const routes: RouteObject[] = [
                   // { index: true, element: <Components /> },
                   { path: 'customBreadcrumb', element: <CustomBreadcrumb /> }
                 ]
+              },
+              {
+                path: 'threeMapDemo',
+                element: <ThreeMapDemo />
               },
               {
                 path: 'learning',

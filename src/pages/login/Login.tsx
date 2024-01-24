@@ -8,7 +8,7 @@ import styles from './login.module.css';
 import { useLocation, useNavigate } from 'react-router-dom';
 import classnames from 'classnames';
 import {
-  AlipayCircleFilled,
+  // AlipayCircleFilled,
   LockOutlined,
   UserOutlined,
   EyeOutlined,
@@ -16,15 +16,16 @@ import {
 } from '@ant-design/icons';
 import { LoginForm } from '@ant-design/pro-components';
 import LoginLogo from './LoginLogo';
+import { selectToken } from '@/store/reducer/userSlice';
 
 const FormItem = Form.Item;
 const { useToken } = theme;
-const iconStyles = {
-  marginInlineStart: '16px',
-  fontSize: '24px',
-  verticalAlign: 'middle',
-  cursor: 'pointer'
-};
+// const iconStyles = {
+//   marginInlineStart: '16px',
+//   fontSize: '24px',
+//   verticalAlign: 'middle',
+//   cursor: 'pointer'
+// };
 
 interface Container {
   children: ReactNode;
@@ -41,15 +42,18 @@ const LoginContainer: FC<Container> = ({ children }) => {
 export default function Login() {
   const location = useLocation();
   const navigate = useNavigate();
+  const token = useAppSelector(selectToken);
+  const userInfo = useAppSelector(selectUserInfo);
   const prev_page_location = location.state as typeof location;
   const dispatch = useAppDispatch();
 
   const onFinish: (formData: any) => Promise<boolean | void> = async (
     values
   ) => {
-    // await dispatch(
-    //   login({ username: values.username, password: values.password })
-    // ).unwrap(); // return originalPromiseResult
+    await dispatch(
+      login({ username: values.username, password: values.password })
+    ).unwrap(); // return originalPromiseResult
+    console.log(token, userInfo, 'tokentokentokentoken');
     message.success('登录成功');
     navigate(
       prev_page_location

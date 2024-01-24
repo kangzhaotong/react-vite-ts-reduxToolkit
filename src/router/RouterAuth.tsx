@@ -18,12 +18,11 @@ export default function RouterAuth() {
   });
 
   useEffect(() => {
-    console.log(run, 'runrunrun');
     run();
   }, [location]);
 
-  // if (!token || !tokenIsValid) {
-  //   return <Navigate to="/login" state={location} replace />;
-  // }
+  if (!token || !tokenIsValid) {
+    return <Navigate to="/login" state={location} replace />;
+  }
   return <Outlet />;
 }

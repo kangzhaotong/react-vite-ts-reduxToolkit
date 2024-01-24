@@ -1,0 +1,41 @@
+[
+  {
+    "name": "全市", "catalog": 2232, "file": 3123, "api": 3123, "table": 3123, "mount": 88, "inset": 6322, "info": 3343, "request": 3123, "response": 4123
+  },
+  {
+    "name": "青秀区", "catalog": 356, "file": 3134, "api": 123, "table": 123, "mount": 24, "inset": 13, "info": 32, "request": 35, "response": 63
+  },
+  {
+    "name": "兴宁区", "catalog": 232, "file": 123, "api": 123, "table": 123, "mount": 88, "inset": 23, "info": 213, "request": 123, "response": 123
+  },
+  {
+    "name": "江南区", "catalog": 124, "file": 135, "api": 345, "table": 123, "mount": 62, "inset": 43, "info": 24, "request": 25, "response": 83
+  },
+  {
+    "name": "西乡塘区", "catalog": 524, "file": 123, "api": 255, "table": 125, "mount": 32, "inset": 31, "info": 12, "request": 123, "response": 56
+  },
+  {
+    "name": "良庆区", "catalog": 342, "file": 6593, "api": 123, "table": 123, "mount": 72, "inset": 42, "info": 21, "request": 24, "response": 36
+  },
+  {
+    "name": "邕宁区", "catalog": 75, "file": 68433, "api": 362, "table": 526, "mount": 14, "inset": 42, "info": 42, "request": 34, "response": 73
+  },
+  {
+    "name": "武鸣区", "catalog": 14, "file": 34658, "api": 123, "table": 123, "mount": 46, "inset": 74, "info": 42, "request": 75, "response": 73
+  },
+  {
+    "name": "隆安县", "catalog": 832, "file": 45335, "api": 123, "table": 123, "mount": 62, "inset": 245, "info": 521, "request": 43, "response": 123
+  },
+  {
+    "name": "马山县", "catalog": 424, "file": 123, "api": 235436, "table": 123, "mount": 24, "inset": 213, "info": 2, "request": 36, "response": 546
+  },
+  {
+    "name": "上林县", "catalog": 224, "file": 123, "api": 123, "table": 123, "mount": 52, "inset": 742, "info": 123, "request": 123, "response": 35
+  },
+  {
+    "name": "宾阳县", "catalog": 266, "file": 23466, "api": 3466, "table": 123, "mount": 25, "inset": 234, "info": 84, "request": 24, "response": 46
+  },
+  {
+    "name": "横县", "catalog": 324, "file": 123, "api": 123, "table": 123, "mount": 64, "inset": 342, "info": 34, "request": 123, "response": 123
+  }
+]

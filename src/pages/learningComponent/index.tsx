@@ -41,6 +41,7 @@ const Home: React.FC<any> = () => {
   const inputRef = useRef<any>();
   const dispatch = useAppDispatch();
   const counter = useAppSelector((state: RootState) => state.counter.value);
+  const initData = useAppSelector((state: RootState) => state.counter.initData);
   const { data } = useSWR('/analysisChart', fetSwr);
   const [name, setName] = useState('aaaa');
   const [inputCurrentVal, setInputCurrentVal] = useState('aaaa');
@@ -71,7 +72,7 @@ const Home: React.FC<any> = () => {
   };
   const transitionHandle = () => {
     console.log(data, 'testtesttesttest');
-    dispatch(incrementByAmount(1));
+    dispatch(increment());
     setTransion(!isTransition);
   };
 
@@ -81,6 +82,7 @@ const Home: React.FC<any> = () => {
         <span>
           {value}
           {newVal}
+          {JSON.stringify(initData)}
         </span>
         <Button onClick={transitionHandle}>
           {isTransition ? 'transition' : 'normal'}{' '}

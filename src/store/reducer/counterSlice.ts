@@ -10,11 +10,13 @@ function fetchCount(amount = 1) {
 export interface CounterState {
   value: number;
   status: 'idle' | 'loading' | 'failed';
+  initData: { name: string, age: number }[]
 }
 
 const initialState: CounterState = {
   value: 2,
-  status: 'idle'
+  status: 'idle',
+  initData: [{ name: 'asdadadas', age: 1231 }, { name: 'asdadadas', age: 1231 }, { name: 'asdadadas', age: 1231 }, { name: 'asdadadas', age: 1231 }]
 };
 
 export const incrementAsync = createAsyncThunk(
@@ -31,6 +33,8 @@ export const counterSlice = createSlice({
   reducers: {
     increment: (state) => {
       state.value += 1;
+      console.log(state, 'kztkztkztkzt')
+      state.initData.push({ name: 'kzt', age: 99999 })
     },
     decrement: (state) => {
       state.value -= 1;
