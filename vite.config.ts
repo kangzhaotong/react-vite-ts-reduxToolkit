@@ -15,18 +15,45 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
     },
-    open: 'index.html'
+    host: '0.0.0.0',
+    open: true,
   },
   resolve: {
     alias: {
       '@': resolve(__dirname, './src')
-    }
+    },
+    // 解析package.json中的字段
+    mainFields: ['module', 'jsnext:main', 'jsnext'],
   },
   build: {
+    target: 'modules',
+    outDir: 'build',
+    assetsDir: 'assets',
+    cssCodeSplit: true,
+    assetsInlineLimit: 4096,
+    sourcemap: true,
+    minify: 'terser',
+    chunkSizeWarningLimit: 500,
+    emptyOutDir: true,
+    manifest: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ['react'],
+          'antd-mobile': ['antd-mobile'],
+        },
+      },
+    },
+    // 传递给 Terser 的更多 minify 选项。
+    terserOptions: {
+      compress: {
+        keep_infinity: true,
+      },
+    },
   },
   plugins: [
     react(),
-    splitVendorChunkPlugin(),
+    // splitVendorChunkPlugin(),
     AutoImport({
       imports: ['react'],
       dts: 'src/auto-imports.d.ts',

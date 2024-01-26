@@ -1,3 +1,9 @@
+/*
+ * @Author: M78.Kangzhaotong
+ * @Date: 2024-01-25 13:58:56
+ * @Last Modified by: M78.Kangzhaotong
+ * @Last Modified time: 2024-01-25 15:03:01
+ */
 import React, { useRef, useEffect, useState, MutableRefObject } from 'react';
 import { Select, Button } from 'antd';
 import * as THREE from 'three';
@@ -9,23 +15,24 @@ import {
 import { OrbitControls as MapControls } from 'three/examples/jsm/controls/OrbitControls';
 import { Line2 } from 'three/examples/jsm/lines/Line2';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry';
-import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
+// import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js';
 import TWEEN from '@tweenjs/tween.js';
 import geoJson100000_Full from './json/100000_full.json';
-import geoJson450100 from './json/450100.json';
-import geoJson450000_Full from './json/450000_full.json';
-import geoJson from './json/450100_full.json';
+// import geoJson450100 from './json/450100.json';
+// import geoJson450000_Full from './json/450000_full.json';
+// import geoJson from './json/450100_full.json';
 import circle1 from '@/assets/images/map-circle-1.png';
 import circle2 from '@/assets/images/map-circle-2.png';
 import circle3 from '@/assets/images/map-circle-3.png';
 import { pxfix } from './config';
+import { useDebounce } from '@/utils/utils';
 import styles from './index.module.less';
 
 const Option = Select.Option;
 
-let width: number = 0;
-let height: number = 0;
+let width = 0;
+let height = 0;
 
 let projection: any;
 
@@ -76,8 +83,8 @@ let deptIndex = 0;
 let deptTimer: any;
 let animationLoop: any;
 
-const worldPosition = new THREE.Vector3();
-const camPosition = new THREE.Vector3();
+// const worldPosition = new THREE.Vector3();
+// const camPosition = new THREE.Vector3();
 const _dataAccess: any = {};
 const ThreeMapDemo = () => {
   const renderer: any = useRef<THREE.WebGLRenderer | null>();
@@ -348,8 +355,8 @@ const ThreeMapDemo = () => {
       color: 0x28d0ff,
       transparent: true,
       linewidth: 1,
-      linecap: 'round', //ignored by WebGLRenderer
-      linejoin: 'round' //ignored by WebGLRenderer
+      linecap: 'round', // ignored by WebGLRenderer
+      linejoin: 'round' // ignored by WebGLRenderer
       // opacity: 0.1
     });
     const option = {
@@ -358,7 +365,7 @@ const ThreeMapDemo = () => {
       altitude: 30,
       highlight: false
     };
-    //全国;
+    // 全国;
     createMap({ ...option, json: geoJson100000_Full });
     // 广西省
     // createMap({ ...option, json: geoJson100000_Full });
@@ -699,8 +706,6 @@ const ThreeMapDemo = () => {
   // 切换地区选中 材质
   const changeMapStyle = (name: string, type: string) => {
     mapGroup.current.traverse((child: any) => {
-      console.log(child, 'child');
-
       if (child.isMesh) {
         // 过滤掉外面线框
         if (type === 'click') {
@@ -842,7 +847,6 @@ const ThreeMapDemo = () => {
       // _cityData.find((item) => item.name === properties.name) || {};
       const [x, y] = projection(properties?.centroid);
       const label = document.createElement('div');
-      ``;
       label.className = 'label';
 
       const labelChild = document.createElement('div');
@@ -1013,7 +1017,7 @@ const ThreeMapDemo = () => {
           恢复视角
         </Button>
       </div>
-      <div ref={divRef} className={styles.map}></div>
+      <div ref={divRef} className={styles.map} />
       <canvas ref={nameRef} className={styles.name} />
     </div>
   );

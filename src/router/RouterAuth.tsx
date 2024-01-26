@@ -21,8 +21,8 @@ export default function RouterAuth() {
     run();
   }, [location]);
 
-  if (!token || !tokenIsValid) {
-    return <Navigate to="/login" state={location} replace />;
-  }
+  // if (!token || !tokenIsValid) {
+  //   return <Navigate to="/login" state={location} replace />;
+  // }
   return <Outlet />;
 }
