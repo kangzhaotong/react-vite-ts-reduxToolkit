@@ -1,3 +1,4 @@
+import React from 'react';
 import IntroduceRow from './components/IntroduceRow';
 import { fetchAnalysisChart } from '@/services/api';
 import useSWR from 'swr';
@@ -6,10 +7,11 @@ import Ranking from './components/Ranking';
 import BottomCards from './components/BottomCards';
 import { Row, Col } from 'antd';
 
-export default function Analysis() {
+const Analysis: React.FC = () => {
   const { isLoading, data = {} } = useSWR('/AnalysisChart', fetchAnalysisChart);
 
   return (
+    // eslint-disable-next-line react/jsx-fragments
     <>
       <IntroduceRow loading={isLoading} visitData={data.visitData || []} />
       <Row gutter={16}>
@@ -23,4 +25,5 @@ export default function Analysis() {
       <BottomCards loading={isLoading} />
     </>
   );
-}
+};
+export default Analysis;

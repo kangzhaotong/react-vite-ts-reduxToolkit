@@ -2,69 +2,22 @@
  * @Author: M78.Kangzhaotong
  * @Date: 2022-07-26 09:46:46
  * @Last Modified by: M78.Kangzhaotong
- * @Last Modified time: 2023-03-29 16:30:18
+ * @Last Modified time: 2024-04-16 14:22:01
  */
 // function currFun() {
 //   const newArgs = [...arguments]
+//   console.log(arguments, '11111111')
 //   function collectionFun() {
 //     newArgs.push(...arguments)
-//     console.debug(newArgs, 'newArgsnewArgsnewArgsnewArgs')
-
+//     console.log([...arguments], newArgs, '2222222222222222222222222222')
 //     return collectionFun
 //   }
+//   console.log(newArgs, '3333333333333')
 //   collectionFun.valueOf = () => newArgs.reduce((a, b) => a + b)
 //   return collectionFun
 // }
 // console.log(currFun(4)(5, 6)(3)(8, 9).valueOf(), 'ceshjishisis')
-// // 手写Promise
-// const PENDDING = 'PENDDING'
-// const REJECTED = 'REJECTED'
-// const FULFILLED = 'FULFILLED'
-// class Promise {
-//   constructor(executer) {
-//     // debugger
-//     this.state = PENDDING
-//     this.val = undefined
-//     this.reason = undefined
-//     const resolve = (value) => {
-//       if (this.state === PENDDING) {
-//         this.state = FULFILLED
-//         this.val = value
-//       }
-//     }
-//     const reject = (reason) => {
-//       if (this.state === PENDDING) {
-//         this.state = REJECTED
-//         this.reason = reason
-//       }
-//     }
-//     try {
-//       executer(resolve, reject)
-//     } catch {
-//       throw new Error('执行失败')
-//     }
-//   }
 
-//   then(onFullfilled, onReject) {
-//     if (this.state === FULFILLED) {
-//       onFullfilled(this.val)
-//     }
-//     if (this.state === REJECTED) {
-//       onReject(this.reason)
-//     }
-//   }
-// }
-// const promise = new Promise((resolve, reject) => {
-//   // 传入一个异步操作
-//   resolve('成功')
-// }).then(
-//   (data) => {
-//     console.log('success', data)
-//   },
-//   (error) => {
-//     console.log('faild', error)
-//   },
-// )
 // // 分词原理
 // const LETTERS = /[\da-z]/
 // const currentToken = ''
@@ -114,16 +67,6 @@
 // // eslint-disable-next-line quotes
 // testFunc("<h1 id='asda' class='name'> <span>sadasda</span></h1>")
 
-// function currFunc() {
-//   const newArgs = [...arguments]
-//   function midFun() {
-//     newArgs.push([...arguments])
-//     return midFun
-//   }
-//   midFun.valueOf = () => newArgs.reduce((a, b) => a + b)
-//   return midFun
-// }
-// console.log(currFunc(4)(5, 6)(3)(8, 9).valueOf())
 // const PENDDING = 'PENDDING'
 // const REJECTED = 'REJECTED'
 // const FULFILLED = 'FULFILLED'
@@ -211,12 +154,20 @@
 //     return func.apply(this, [...rest, ...args])
 //   }
 // }
-// // 原型链
+// 原型链
 // function Animal() {
 //   console.log('I`m a human')
 // }
-
+// class People {
+//   constructor() {
+//     this.name = 'aaaaa'
+//   }
+//   say = () => {
+//     console.log('________________')
+//   }
+// }
 // const child = new Animal()
+// const child2 = new People
 // console.log(
 //   // eslint-disable-next-line no-proto
 //   child.__proto__,
@@ -225,6 +176,8 @@
 //   Object.prototype,
 //   // eslint-disable-next-line no-proto
 //   Object.__proto__,
+//   child2.prototype,
+//   child2.say(),
 //   'ceshiceshi',
 // )
 // const a = {}
@@ -232,7 +185,7 @@
 // const c = { height: 1.9, weghit: 120 }
 // const d = Object.assign(a, b, c)
 // console.log(d)
-// // LruCache
+// LruCache
 // const LRUFunction = function (maxSize) {
 //   this.maxSize = maxSize
 //   this.cache = new Map()
@@ -354,17 +307,17 @@
 //   }
 //   return res
 // }
-// console.log(floorFun(4), 'floorFun(3)floorFun(3)floorFun(3)floorFun(3)floorFun(3)')
-const arrList = [
-  { id: 1, name: '部门1', pid: 0 },
-  { id: 2, name: '部门2', pid: 1 },
-  { id: 3, name: '部门3', pid: 1 },
-  { id: 4, name: '部门4', pid: 3 },
-  { id: 5, name: '部门5', pid: 4 },
-  { id: 6, name: '部门6', pid: 0 },
-  { id: 7, name: '部门7', pid: 6 },
-  { id: 8, name: '部门7', pid: 0 },
-]
+// console.log(floorFun(100), 'floorFun(3)floorFun(3)floorFun(3)floorFun(3)floorFun(3)')
+// const arrList = [
+//   { id: 1, name: '部门1', pid: 0 },
+//   { id: 2, name: '部门2', pid: 1 },
+//   { id: 3, name: '部门3', pid: 1 },
+//   { id: 4, name: '部门4', pid: 3 },
+//   { id: 5, name: '部门5', pid: 4 },
+//   { id: 6, name: '部门6', pid: 0 },
+//   { id: 7, name: '部门7', pid: 6 },
+//   { id: 8, name: '部门7', pid: 0 },
+// ]
 
 // const treeArray = (arr) => {
 //   const result = []
@@ -392,33 +345,34 @@ const arrList = [
 //   })
 //   return JSON.stringify(result)
 // }
-const dealFun = (arrList) => {
-  const result = []
-  const midMap = {}
-  arrList.forEach((v) => {
-    const { id, pid } = v
-    if (!midMap[id]) {
-      midMap[id] = {
-        children: [],
-      }
-    }
-    midMap[id] = {
-      ...v,
-      children: midMap[id].children,
-    }
-    if (!pid) {
-      result.push(midMap[id])
-    } else if (midMap[pid]) {
-      midMap[pid].children.push(midMap[id])
-    } else {
-      midMap[pid] = {
-        children: [],
-      }
-    }
-  })
-  return result
-}
-// console.log(treeArray(arrList), 'dealFundealFundealFundealFun')
+// const dealFun = (arrList) => {
+//   const result = []
+//   const midMap = {}
+//   arrList.forEach((v) => {
+//     const { id, pid } = v
+//     if (!midMap[id]) {
+//       midMap[id] = {
+//         children: [],
+//       }
+//     }
+//     midMap[id] = {
+//       ...v,
+//       children: midMap[id].children,
+//     }
+//     if (!pid) {
+//       result.push(midMap[id])
+//     } else if (midMap[pid]) {
+//       midMap[pid].children.push(midMap[id])
+//     } else {
+//       midMap[pid] = {
+//         children: [],
+//       }
+//     }
+//   })
+//   console.log(result, 'resultresultresultresult')
+//   return result
+// }
+// console.log(dealFun(arrList), 'dealFundealFundealFundealFun')
 // function testFun() {
 //   console.log('this is test')
 // }
@@ -473,32 +427,78 @@ const dealFun = (arrList) => {
 // result= pathGet(obj, ['a', 0', b', 'c']);
 // console.log(result);
 // // => 3
-function pathGet(v, path, defaultValue) {
-    if (!path) {
-        return v
-    }
+// function pathGet(v, path, defaultValue) {
+//     if (!path) {
+//         return v
+//     }
 
-    const keys = Array.isArray(path) ? path : path.split('.')
-    let result = v
+//     const keys = Array.isArray(path) ? path : path.split('.')
+//     let result = v
 
-    for (const key of keys) {
-        if (typeof result === 'object' && result !== null) {
-            if (key.includes('[')) {
-                const newKey = key.replace(']', '').replace('[', '.')
-                result = pathGet(result, newKey)
-            } else {
-                result = result[key]
-            }
-        } else if (Array.isArray(result) && /^\d+$/.test(key) && key < result.length) {
-            result = result[key]
-        } else {
-            return defaultValue
+//     for (const key of keys) {
+//         if (typeof result === 'object' && result !== null) {
+//             if (key.includes('[')) {
+//                 const newKey = key.replace(']', '').replace('[', '.')
+//                 result = pathGet(result, newKey)
+//             } else {
+//                 result = result[key]
+//             }
+//         } else if (Array.isArray(result) && /^\d+$/.test(key) && key < result.length) {
+//             result = result[key]
+//         } else {
+//             return defaultValue
+//         }
+//     }
+
+//     return result !== undefined ? result : defaultValue
+// }
+
+// const obj = { a: [{ b: { c: 3 } }] }
+// console.log(pathGet(obj, ['a', '0', 'b', 'c']), '3333333')
+// console.log(pathGet(obj, 'a[0].b.c'), '12222222')
+// N皇后问题
+const isValid = (board, row, col) => {
+    for (let i = 0; i < row; i++) {
+        if (board[i][col] === 1 || board[i][col - row + i] === 1 || board[i][col + row - i] === 1) {
+            return false;
         }
     }
-
-    return result !== undefined ? result : defaultValue
+    return true;
+};
+/**
+ * @param {number} n 方阵的边长
+ * @return {string[][]} 结果级
+ */
+function solveNQueens(n) {
+    const solutions = [];
+    const solve = (board, row) => {
+        if (row === n) {
+            solutions.push(board.map(row => [...row]));
+            return;
+        }
+        /**
+         * 
+         * @param {*} row 皇后的行
+         * @param {*} col 皇后的列
+         * @returns 
+         */
+        for (let col = 0; col < n; col++) {
+            if (isValid(board, row, col)) {
+                board[row][col] = 1;
+                let str = ''
+                board.forEach(element => {
+                    str = str + JSON.stringify(element) + '\n'
+                });
+                console.log('first', row, col, '\n', str, '--------------')
+                solve(board, row + 1);
+                board[row][col] = 0;
+            }
+        }
+    }
+    solve(Array.from({ length: n }, () => Array(n).fill(0)), 0);
+    return solutions;
 }
 
-const obj = { a: [{ b: { c: 3 } }] }
-console.log(pathGet(obj, ['a', '0', 'b', 'c']), '3333333')
-console.log(pathGet(obj, 'a[0].b.c'), '12222222')
+// 示例
+const solutions = solveNQueens(4); // 8 皇后问题的解
+console.log(solutions);

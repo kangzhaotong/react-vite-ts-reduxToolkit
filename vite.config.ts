@@ -22,7 +22,6 @@ export default defineConfig({
     alias: {
       '@': resolve(__dirname, './src')
     },
-    // 解析package.json中的字段
     mainFields: ['module', 'jsnext:main', 'jsnext'],
   },
   build: {
@@ -40,7 +39,7 @@ export default defineConfig({
       output: {
         manualChunks: {
           react: ['react'],
-          'antd-mobile': ['antd-mobile'],
+          'antd': ['antd'],
         },
       },
     },

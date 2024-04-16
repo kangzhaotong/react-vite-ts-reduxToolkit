@@ -2,7 +2,7 @@
  * @Author: M78.Kangzhaotong
  * @Date: 2024-01-25 13:58:56
  * @Last Modified by: M78.Kangzhaotong
- * @Last Modified time: 2024-01-25 15:03:01
+ * @Last Modified time: 2024-02-20 16:35:06
  */
 import React, { useRef, useEffect, useState, MutableRefObject } from 'react';
 import { Select, Button } from 'antd';
@@ -82,9 +82,6 @@ let mapTimer: any;
 let deptIndex = 0;
 let deptTimer: any;
 let animationLoop: any;
-
-// const worldPosition = new THREE.Vector3();
-// const camPosition = new THREE.Vector3();
 const _dataAccess: any = {};
 const ThreeMapDemo = () => {
   const renderer: any = useRef<THREE.WebGLRenderer | null>();
@@ -259,7 +256,6 @@ const ThreeMapDemo = () => {
     ctx.fillStyle = '#fff';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-
     if (cylinder.current && cylinder.current.visible) {
       ctx.font = `${pxfix(3840, 26)}px Aria`;
       // const [x, y] = projection(mapActive.position);
@@ -433,6 +429,7 @@ const ThreeMapDemo = () => {
                 mapMaterial
               );
               const line = new THREE.Line(linGeometry, lineMaterial);
+              // eslint-disable-next-line max-depth
               if (properties.centroid) {
                 const [x, y] = projection(properties.centroid);
                 mesh.name = properties.name;
@@ -440,6 +437,7 @@ const ThreeMapDemo = () => {
                 county._centroid = [x, -y];
               }
 
+              // eslint-disable-next-line max-depth
               if (!highlight) {
                 county.position.z = -altitude;
                 county.position.z = -altitude;
@@ -517,7 +515,6 @@ const ThreeMapDemo = () => {
 
     //     const point = document.createElement("div");
     //     point.className = "point";
-
     //     const pointChild = document.createElement("div");
     //     pointChild.className = "child";
     //     pointChild.textContent = marker.name;
@@ -546,6 +543,7 @@ const ThreeMapDemo = () => {
     });
 
     cylinder.current = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
+    console.log(cylinder.current, 'cylinder.currentcylinder.current');
     cylinder.current.visible = false;
     cylinder.current.rotateX(-Math.PI * 0.5);
     cylinder.current.position.z = 70;
@@ -693,11 +691,9 @@ const ThreeMapDemo = () => {
       true
     );
 
-    // console.log(intersects, '1');
     if (intersects.length > 0) {
       // if (markerGroup.visible) return;
       const { object } = intersects[0];
-      // console.log(intersects);
       changeMapStyle(object.name, 'hover');
     } else {
       changeMapStyle('', 'hover');
@@ -866,7 +862,6 @@ const ThreeMapDemo = () => {
       css2dObj.position.x = x;
       css2dObj.position.y = -y;
       css2dObj.position.z = 51;
-      // console.log(css2dObj)
 
       labelGroup.current.push(css2dObj);
       scene.current.add(css2dObj);
@@ -874,7 +869,6 @@ const ThreeMapDemo = () => {
   };
   const initDat = () => {
     const datGui = new GUI();
-    // console.log(camera);
     const guiOption = {
       x: camera.current.position.x || 0,
       y: camera.current.position.y || 0,
@@ -915,7 +909,6 @@ const ThreeMapDemo = () => {
       dispose(scene2.current, a);
     });
 
-    // console.log(renderer.current.info); // 查看memery字段即可
     // console.log(renderer2.current.info); // 查看memery字段即可
 
     scene.current.clear();
@@ -981,7 +974,6 @@ const ThreeMapDemo = () => {
       // const x1 = x - (width / 2);
       // const y1 = -(y - (height / 2));
       const h = target.catalogNum ? Math.round(100 / (max / 100)) : 0;
-      // console.log(h, max, target);
 
       const boxGeo = new THREE.BoxGeometry(15, 15, h);
 

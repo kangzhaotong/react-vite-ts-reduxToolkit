@@ -24,6 +24,7 @@ import {
   decrement,
   incrementByAmount
 } from '@/store/reducer/counterSlice';
+import type { InputRef } from 'antd';
 import styles from './index.module.less';
 import { fetSwr } from '@/services/api';
 interface params {
@@ -37,18 +38,16 @@ const Child: React.FC<params> = ({ data, handelClick }) => {
 };
 const UseMemoChild = React.memo(Child);
 
-const Home: React.FC<any> = () => {
-  const inputRef = useRef<any>();
+const Home: React.FC = () => {
+  const inputRef = useRef<InputRef>(null);
   const dispatch = useAppDispatch();
   const counter = useAppSelector((state: RootState) => state.counter.value);
   const initData = useAppSelector((state: RootState) => state.counter.initData);
   const { data } = useSWR('/analysisChart', fetSwr);
-  const [name, setName] = useState('aaaa');
-  const [inputCurrentVal, setInputCurrentVal] = useState('aaaa');
+  const [name, setName] = useState('name测试');
+  const [inputCurrentVal, setInputCurrentVal] = useState('测试');
   const [value, setValue] = useState('');
   const [isTransition, setTransion] = useState(false);
-  const [isPendding, setMyTransition] = useTransition();
-  const test = new Map();
 
   const deferredValue = useDeferredValue(inputCurrentVal);
   const changeName = useCallback(() => dealName(name), [name]);
@@ -57,7 +56,6 @@ const Home: React.FC<any> = () => {
 
   const dataName = useMemo(() => name, [name]);
   const dealName = (restName: string) => {
-    test.set('aa', 11);
     const newName = `${restName}ceshi`;
     setName(newName);
   };
@@ -65,13 +63,11 @@ const Home: React.FC<any> = () => {
   const newVal = value + name;
 
   const startTransition = () => {
+    // 触发
     dispatch(decrement());
-    setMyTransition(() => {
-      setValue(`${inputRef.current?.input.value}11`);
-    });
+    setValue(`${inputRef.current?.input?.value}11`);
   };
   const transitionHandle = () => {
-    console.log(data, 'testtesttesttest');
     dispatch(increment());
     setTransion(!isTransition);
   };
@@ -93,7 +89,6 @@ const Home: React.FC<any> = () => {
         <div>
           {debounceValue} {JSON.stringify(data)}
         </div>
-        {/* {isPendding ? 'hahahahah' : <div>asdasdadaddadadas</div>} */}
         <Input
           style={{ width: 200 }}
           ref={inputRef}
@@ -102,10 +97,7 @@ const Home: React.FC<any> = () => {
         <UseMemoChild data={dataName} handelClick={changeName} />
         <div className={styles.testBox}>测试盒子{counter}</div>
       </div>
-      <div>这是inputdeferredValuevalue {deferredValue}</div>
-      <svg className={styles.loading} viewBox="25 25 50 50">
-        <circle cx="50" cy="50" r="25" className={styles.path} fill="none" />
-      </svg>
+      <div>这是inputdeferredValue {deferredValue}</div>
     </div>
   );
 };

@@ -51,7 +51,7 @@ class Request {
       },
       (error) => {
         // 这里处理http状态码错误
-        message.error(`${error.message}, 请检查网络或联系管理员`);
+        // message.error(`${error.message}, 请检查网络或联系管理员`);
         return Promise.reject(error);
       }
     );
