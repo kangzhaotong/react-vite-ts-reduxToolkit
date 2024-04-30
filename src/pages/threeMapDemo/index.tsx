@@ -2,7 +2,7 @@
  * @Author: M78.Kangzhaotong
  * @Date: 2024-01-25 13:58:56
  * @Last Modified by: M78.Kangzhaotong
- * @Last Modified time: 2024-02-20 16:35:06
+ * @Last Modified time: 2024-04-28 14:42:10
  */
 import React, { useRef, useEffect, useState, MutableRefObject } from 'react';
 import { Select, Button } from 'antd';
@@ -256,7 +256,7 @@ const ThreeMapDemo = () => {
     ctx.fillStyle = '#fff';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    if (cylinder.current && cylinder.current.visible) {
+    if (cylinder.current?.visible) {
       ctx.font = `${pxfix(3840, 26)}px Aria`;
       // const [x, y] = projection(mapActive.position);
       // const x1 = x - (width / 2);

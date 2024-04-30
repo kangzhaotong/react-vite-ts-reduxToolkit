@@ -2,7 +2,7 @@
  * @Author: M78.Kangzhaotong
  * @Date: 2022-07-26 09:46:46
  * @Last Modified by: M78.Kangzhaotong
- * @Last Modified time: 2024-04-16 14:22:01
+ * @Last Modified time: 2024-04-25 14:24:16
  */
 // function currFun() {
 //   const newArgs = [...arguments]
@@ -456,49 +456,90 @@
 // const obj = { a: [{ b: { c: 3 } }] }
 // console.log(pathGet(obj, ['a', '0', 'b', 'c']), '3333333')
 // console.log(pathGet(obj, 'a[0].b.c'), '12222222')
-// N皇后问题
-const isValid = (board, row, col) => {
-    for (let i = 0; i < row; i++) {
-        if (board[i][col] === 1 || board[i][col - row + i] === 1 || board[i][col + row - i] === 1) {
-            return false;
-        }
-    }
-    return true;
-};
-/**
- * @param {number} n 方阵的边长
- * @return {string[][]} 结果级
- */
-function solveNQueens(n) {
-    const solutions = [];
-    const solve = (board, row) => {
-        if (row === n) {
-            solutions.push(board.map(row => [...row]));
-            return;
-        }
-        /**
-         * 
-         * @param {*} row 皇后的行
-         * @param {*} col 皇后的列
-         * @returns 
-         */
-        for (let col = 0; col < n; col++) {
-            if (isValid(board, row, col)) {
-                board[row][col] = 1;
-                let str = ''
-                board.forEach(element => {
-                    str = str + JSON.stringify(element) + '\n'
-                });
-                console.log('first', row, col, '\n', str, '--------------')
-                solve(board, row + 1);
-                board[row][col] = 0;
-            }
-        }
-    }
-    solve(Array.from({ length: n }, () => Array(n).fill(0)), 0);
-    return solutions;
-}
+// // N皇后问题
+// const isValid = (board, row, col) => {
+//     for (let i = 0; i < row; i++) {
+//         if (board[i][col] === 1 || board[i][col - row + i] === 1 || board[i][col + row - i] === 1) {
+//             return false;
+//         }
+//     }
+//     return true;
+// };
+// /**
+//  * @param {number} n 方阵的边长
+//  * @return {string[][]} 结果级
+//  */
+// function solveNQueens(n) {
+//     const solutions = [];
+//     const solve = (board, row) => {
+//         if (row === n) {
+//             solutions.push(board.map(row => [...row]));
+//             return;
+//         }
+//         /**
+//          * 
+//          * @param {*} row 皇后的行
+//          * @param {*} col 皇后的列
+//          * @returns 
+//          */
+//         for (let col = 0; col < n; col++) {
+//             if (isValid(board, row, col)) {
+//                 board[row][col] = 1;
+//                 let str = ''
+//                 board.forEach(element => {
+//                     str = str + JSON.stringify(element) + '\n'
+//                 });
+//                 console.log('first', row, col, '\n', str, '--------------')
+//                 solve(board, row + 1);
+//                 board[row][col] = 0;
+//             }
+//         }
+//     }
+//     solve(Array.from({ length: n }, () => Array(n).fill(0)), 0);
+//     return solutions;
+// }
 
-// 示例
-const solutions = solveNQueens(4); // 8 皇后问题的解
-console.log(solutions);
+// // 示例
+// const solutions = solveNQueens(4); // 8 皇后问题的解
+// console.log(solutions);
+/*
+ * @lc app=leetcode.cn id=198 lang=typescript
+ *
+ * [198] 打家劫舍
+ */
+
+// @lc code=start
+// function rob(nums) {
+//     let pre = 0;
+//     let next = 0;
+//     for (let num of nums) {
+//         let temp = Math.max(pre + num, next)
+//         console.log(pre, num, next, temp, '---------')
+//         pre = next;
+//         next = temp;
+//     }
+//     console.log(next, '+++++')
+//     return next;
+// }
+let myList = [1, 2, 3, 1]
+// rob(myList)
+
+let robTo = function (nums, lastIndex) {
+    if (lastIndex === 0) {
+        return nums[0];
+    }
+
+    // 方案一，包含最后一栋房子，则应该丢弃倒数第二栋房子
+    let sum1 = robTo(nums, lastIndex - 2) + nums[lastIndex];
+
+    // 方案二，不包含最后一栋房子，那么方案二的结果就是到偷到 lastIndex-1 为止的最优结果
+    let sum2 = robTo(nums, lastIndex - 1);
+    console.log(sum1, sum2, 'aaaaaaaaaaaa')
+    return Math.max(sum1, sum2);
+};
+
+function rob2(nums) {
+    return robTo(nums, nums.length - 1);
+}
+rob2(myList)
+// @lc code=end
