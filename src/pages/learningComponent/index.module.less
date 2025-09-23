@@ -1,0 +1,53 @@
+.testBox {
+    width: 200px;
+    height: 200px;
+    border: 2px solid rebeccapurple;
+    animation-timing-function: cubic-bezier(0.22, 1.23, 0.97, 0.89);
+}
+
+.loading {
+    width: 50px;
+    height: 50px;
+    animation: rotate 2s linear 0s infinite;
+}
+
+.path {
+    animation: dash 2s ease-in-out infinite;
+    stroke: #00b390;
+    stroke-width: 2;
+    stroke-dasharray: 90 150;
+    stroke-dashoffset: 0;
+    stroke-linecap: round;
+}
+
+.myCanvas {
+    width: 900px;
+    height: 500px;
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes dash {
+    0% {
+        stroke-dasharray: 1 150;
+        stroke-dashoffset: 0;
+    }
+
+    50% {
+        stroke-dasharray: 90 150;
+        stroke-dashoffset: -40px;
+    }
+
+    100% {
+        stroke-dasharray: 90 150;
+        stroke-dashoffset: -120px;
+    }
+}
