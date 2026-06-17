@@ -6,7 +6,6 @@ import {
 } from '@reduxjs/toolkit';
 import {
   persistStore,
-  persistReducer,
   FLUSH,
   REHYDRATE,
   PAUSE,
@@ -20,11 +19,12 @@ import counterReducer from './reducer/counterSlice';
 import userSlice from './reducer/userSlice';
 import layoutSlice from './reducer/layoutSlice';
 import loadingReducer from './reducer/loadingSlice';
+import { createPersistedReducer } from './reduxToolkit';
 
 const rootReducer = combineReducers({
   loading: loadingReducer,
-  counter: persistReducer({ key: 'counter', storage }, counterReducer),
-  user: persistReducer(
+  counter: createPersistedReducer({ key: 'counter', storage }, counterReducer),
+  user: createPersistedReducer(
     {
       key: 'user',
       storage,
@@ -32,7 +32,7 @@ const rootReducer = combineReducers({
     },
     userSlice
   ),
-  layout: persistReducer(
+  layout: createPersistedReducer(
     {
       key: 'layout',
       storage
@@ -48,7 +48,7 @@ const persistConfig = {
   blacklist: ['user', 'layout', 'counter', 'loading']
 };
 
-const persistedReducer = persistReducer(persistConfig, rootReducer);
+const persistedReducer = createPersistedReducer(persistConfig, rootReducer);
 
 export const store = configureStore({
   reducer: persistedReducer,

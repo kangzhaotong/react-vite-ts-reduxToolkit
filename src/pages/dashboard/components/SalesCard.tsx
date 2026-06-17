@@ -72,8 +72,8 @@ function SalesCard({ loading, data }: SalesCardProps) {
   return (
     <Card
       loading={loading}
-      bordered={false}
-      bodyStyle={{ padding: 0 }}
+      variant="borderless"
+      styles={{ body: { padding: 0 } }}
       className="analysis_salesCard"
       style={{ height: '100%' }}
     >

@@ -20,15 +20,17 @@ export default function Ranking({
   return (
     <Card
       loading={loading}
-      bordered={false}
+      variant="borderless"
       title="XX排名"
-      headStyle={{ fontWeight: 400 }}
-      bodyStyle={{
-        paddingBlock: 0,
-        marginTop: 16,
-        paddingBottom: 10,
-        maxHeight: 320,
-        overflowY: 'auto'
+      styles={{
+        header: { fontWeight: 400 },
+        body: {
+          paddingBlock: 0,
+          marginTop: 16,
+          paddingBottom: 10,
+          maxHeight: 320,
+          overflowY: 'auto'
+        }
       }}
       style={{ height: '100%' }}
     >

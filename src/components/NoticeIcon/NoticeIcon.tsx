@@ -31,7 +31,10 @@ export type NoticeIconProps = {
 
 const NoticeIcon: React.FC<NoticeIconProps> & {
   Tab: typeof NoticeList;
-} = (props) => {
+} = ({
+  emptyImage = 'https://gw.alipayobjects.com/zos/rmsportal/wAhyIChODzsoKIOBHcBk.svg',
+  ...props
+}) => {
   const { token } = theme.useToken();
   const getNotificationBox = (): React.ReactNode => {
     const {
@@ -67,6 +70,7 @@ const NoticeIcon: React.FC<NoticeIconProps> & {
             <NoticeList
               clearText={clearText}
               viewMoreText={viewMoreText}
+              emptyImage={emptyImage}
               list={list}
               tabKey={tabKey}
               onClear={(): void => onClear?.(title, tabKey)}
@@ -134,7 +138,7 @@ const NoticeIcon: React.FC<NoticeIconProps> & {
 
   return (
     <Popover
-      overlayInnerStyle={{ padding: 0 }}
+      styles={{ body: { padding: 0 } }}
       showArrow={false}
       placement="bottomRight"
       content={notificationBox as React.ReactElement}
@@ -146,11 +150,6 @@ const NoticeIcon: React.FC<NoticeIconProps> & {
       {trigger}
     </Popover>
   );
-};
-
-NoticeIcon.defaultProps = {
-  emptyImage:
-    'https://gw.alipayobjects.com/zos/rmsportal/wAhyIChODzsoKIOBHcBk.svg'
 };
 
 NoticeIcon.Tab = NoticeList;

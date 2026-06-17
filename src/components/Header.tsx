@@ -3,8 +3,11 @@ import { MenuUnfoldOutlined, MenuFoldOutlined } from '@ant-design/icons';
 import { Layout, Row, Col, Space } from 'antd';
 import LayoutBreadcrumb from './Breadcrumb';
 import PersonalCenter from './PersonalCenter';
-import { selectIsDarkMode } from '@/store/reducer/layoutSlice';
-import { setCollapsed } from '@/store/reducer/layoutSlice';
+import {
+  selectIsDarkMode,
+  selectLayoutState,
+  setCollapsed
+} from '@/store/reducer/layoutSlice';
 import LocalSettingsHeaderButton from './LocalSettings';
 import { FullScreenHeaderButton } from './FullScreen';
 import NoticeHeaderButton from './NoticeIcon';
@@ -16,7 +19,7 @@ const { Header } = Layout;
 export default function LayoutHeader() {
   const isDarkMode = useAppSelector(selectIsDarkMode);
   const dispatch = useAppDispatch();
-  const { collapsed, layout } = useAppSelector((state) => state.layout);
+  const { collapsed, layout } = useAppSelector(selectLayoutState);
   return (
     <Header
       style={{

@@ -1,5 +1,10 @@
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { RootState, AppThunk } from '@/store';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { AppThunk } from '@/store';
+import {
+  createAppAsyncThunk,
+  createAppSlice,
+  createSliceSelectors
+} from '@/store/reduxToolkit';
 
 function fetchCount(amount = 1) {
   return new Promise<{ data: number }>((resolve) =>
@@ -19,7 +24,7 @@ const initialState: CounterState = {
   initData: [{ name: 'asdadadas', age: 1231 }, { name: 'asdadadas', age: 1231 }, { name: 'asdadadas', age: 1231 }, { name: 'asdadadas', age: 1231 }]
 };
 
-export const incrementAsync = createAsyncThunk(
+export const incrementAsync = createAppAsyncThunk(
   'counter/fetchCount',
   async (amount: number) => {
     const response = await fetchCount(amount);
@@ -27,7 +32,7 @@ export const incrementAsync = createAsyncThunk(
   }
 );
 
-export const counterSlice = createSlice({
+export const counterSlice = createAppSlice({
   name: 'counter',
   initialState,
   reducers: {
@@ -63,7 +68,13 @@ export const counterSlice = createSlice({
 
 export const { increment, decrement, incrementByAmount } = counterSlice.actions;
 
-export const selectCount = (state: RootState) => state.counter.value;
+const { selectSlice: selectCounterState, selectFromSlice: selectCounter } =
+  createSliceSelectors((state) => state.counter);
+
+export const selectCount = selectCounter((state) => state.value);
+export const selectCounterStatus = selectCounter((state) => state.status);
+export const selectCounterInitData = selectCounter((state) => state.initData);
+export { selectCounterState };
 
 export const incrementIfOdd =
   (amount: number): AppThunk =>

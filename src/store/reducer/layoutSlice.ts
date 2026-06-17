@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { RootState } from '@/store';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createAppSlice, createSliceSelectors } from '@/store/reduxToolkit';
 
 type BreadcrumbItem = string | { name: string; path: string };
 
@@ -21,7 +21,7 @@ const initialState: LayoutState = {
   themeColor: '#1677ff'
 };
 
-export const layoutSlice = createSlice({
+export const layoutSlice = createAppSlice({
   name: 'layout',
   initialState,
   reducers: {
@@ -46,14 +46,14 @@ export const layoutSlice = createSlice({
 export const { setBreadcrumb, setCollapsed, setDarkMode, setThemeColor, setLayout } =
   layoutSlice.actions;
 
-export const selectCollapsed = (state: RootState) => state.layout.collapsed;
+const { selectSlice: selectLayoutState, selectFromSlice: selectLayoutValue } =
+  createSliceSelectors((state) => state.layout);
 
-export const selectBreadcrumb = (state: RootState) => state.layout.breadcrumb;
-
-export const selectIsDarkMode = (state: RootState) => state.layout.isDarkMode;
-
-export const selectThemeColor = (state: RootState) => state.layout.themeColor;
-
-export const selectLayout = (state: RootState) => state.layout.layout;
+export const selectCollapsed = selectLayoutValue((state) => state.collapsed);
+export const selectBreadcrumb = selectLayoutValue((state) => state.breadcrumb);
+export const selectIsDarkMode = selectLayoutValue((state) => state.isDarkMode);
+export const selectThemeColor = selectLayoutValue((state) => state.themeColor);
+export const selectLayout = selectLayoutValue((state) => state.layout);
+export { selectLayoutState };
 
 export default layoutSlice.reducer;

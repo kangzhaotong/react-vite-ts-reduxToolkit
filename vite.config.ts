@@ -20,7 +20,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': resolve(__dirname, './src')
+      '@': resolve(__dirname, './src'),
+      axios: 'axios/dist/browser/axios.cjs'
     },
     mainFields: ['module', 'jsnext:main', 'jsnext'],
   },

@@ -13,7 +13,7 @@ import {
   To
 } from 'react-router-dom';
 import { Menu } from 'antd';
-import { ItemType } from 'antd/es/menu/hooks/useItems';
+import type { MenuProps } from 'antd';
 import { routes } from '@/router/routes';
 import DynamicIcons from './DynamicIcons';
 import { useBreadcrumbfromMenuData } from './Breadcrumb';
@@ -23,16 +23,19 @@ import type { SetState } from 'ahooks/es/useSetState';
 import * as config from '@/config';
 import type { MenuItem } from '@/config';
 import { fetchUserMenu } from '@/services/api';
+import { selectLayout } from '@/store/reducer/layoutSlice';
 
 interface State {
   openKeys: string[];
   selectKey: string;
 }
 
+type MenuItemType = NonNullable<MenuProps['items']>[number];
+
 export default function LayoutMenu() {
   const navigate = useNavigate();
 
-  const { layout } = useAppSelector((state) => state.layout);
+  const layout = useAppSelector(selectLayout);
 
   const menuData = useMenuData();
   const [state, setState] = useSetState<State>({
@@ -96,8 +99,8 @@ export default function LayoutMenu() {
  * @param {MenuItem[]} data
  * @returns
  */
-const generateMenuItems = (data: MenuItem[]): ItemType[] => {
-  const menu: ItemType[] = [];
+const generateMenuItems = (data: MenuItem[]): MenuItemType[] => {
+  const menu: MenuItemType[] = [];
   data.forEach((item) => {
     let children;
     if (item.children) {
@@ -108,7 +111,7 @@ const generateMenuItems = (data: MenuItem[]): ItemType[] => {
       label: item.label,
       icon: <DynamicIcons icon={item.icon} />,
       children
-    } as ItemType);
+    } as MenuItemType);
   });
   return menu;
 };

@@ -13,6 +13,7 @@ const Learning = lazy(() => import('@/pages/learningComponent'));
 const ThreeDemo = lazy(() => import('@/pages/threeDemo'));
 const CustomBreadcrumb = lazy(() => import('@/pages/custom-breadcrumb'));
 const Dashboard = lazy(() => import('@/pages/dashboard'));
+const DemoPage = lazy(() => import('@/pages/demoPage'));
 
 export const routes: RouteObject[] = [
   {
@@ -56,6 +57,10 @@ export const routes: RouteObject[] = [
               {
                 path: 'threeDemo',
                 element: <ThreeDemo />
+              },
+              {
+                path: 'demoPage',
+                element: <DemoPage />
               },
               {
                 path: '*',

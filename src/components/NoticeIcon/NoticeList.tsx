@@ -17,6 +17,7 @@ export type NoticeIconTabProps = {
   emptyText?: string;
   clearText?: string;
   viewMoreText?: string;
+  emptyImage?: string;
   list: API.NoticeIconItem[];
   onViewMore?: (e: any) => void;
 };
@@ -28,6 +29,7 @@ const NoticeList: React.FC<NoticeIconTabProps> = ({
   title,
   onViewMore,
   emptyText,
+  emptyImage,
   showClear = true,
   clearText,
   viewMoreText,
@@ -41,7 +43,7 @@ const NoticeList: React.FC<NoticeIconTabProps> = ({
         className={styles.notFound}
       >
         <img
-          src="https://gw.alipayobjects.com/zos/rmsportal/sAuJeJzSKbUmHfBQRzmZ.svg"
+          src={emptyImage}
           alt="not found"
         />
         <div>{emptyText}</div>

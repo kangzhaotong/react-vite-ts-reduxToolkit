@@ -16,13 +16,13 @@ import React, {
 // import { flushSync } from 'react-dom';
 import { Input, Button } from 'antd';
 import useSWR from 'swr';
-// 整个项目引入一旦躲起来就显得很臃肿
-import type { RootState } from '@/store';
 // redux原生和dva的区别就是dva的方法按照约定式文件是不需要手动导入的
 import {
   increment,
   decrement,
-  incrementByAmount
+  incrementByAmount,
+  selectCount,
+  selectCounterInitData
 } from '@/store/reducer/counterSlice';
 import type { InputRef } from 'antd';
 import styles from './index.module.less';
@@ -41,8 +41,8 @@ const UseMemoChild = React.memo(Child);
 const Home: React.FC = () => {
   const inputRef = useRef<InputRef>(null);
   const dispatch = useAppDispatch();
-  const counter = useAppSelector((state: RootState) => state.counter.value);
-  const initData = useAppSelector((state: RootState) => state.counter.initData);
+  const counter = useAppSelector(selectCount);
+  const initData = useAppSelector(selectCounterInitData);
   const { data } = useSWR('/analysisChart', fetSwr);
   const [name, setName] = useState('name测试');
   const [inputCurrentVal, setInputCurrentVal] = useState('测试');

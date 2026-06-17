@@ -4,7 +4,7 @@ import type { RadioChangeEvent } from 'antd';
 import { SettingOutlined } from '@ant-design/icons';
 import type { DrawerProps, ButtonProps } from 'antd';
 import { DarkModeSwitch } from './DarkModeSwitch';
-import { setLayout } from '@/store/reducer/layoutSlice';
+import { selectLayout, setLayout } from '@/store/reducer/layoutSlice';
 import { ThemeColorsSelect } from './ThemeColors';
 import HeaderButton from './HeaderButton';
 
@@ -27,7 +27,7 @@ function LocalSettingsBtn({ onClick }: ButtonProps) {
 }
 function LocalSettingsDrawer(props: DrawerProps) {
   const dispatch = useAppDispatch();
-  const { layout } = useAppSelector((state) => state.layout);
+  const layout = useAppSelector(selectLayout);
 
   const onChange = (e: RadioChangeEvent) => {
     dispatch(setLayout(e.target.value || 'side'));

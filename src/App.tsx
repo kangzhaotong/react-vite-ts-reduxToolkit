@@ -8,7 +8,10 @@ function MyApp() {
   useGlobalTips();
   return (
     <Suspense fallback={<Loading />}>
-      <RouterProvider router={router} />
+      <RouterProvider
+        router={router}
+        future={{ v7_startTransition: true }}
+      />
     </Suspense>
   );
 }

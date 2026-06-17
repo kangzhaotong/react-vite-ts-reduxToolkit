@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { RootState } from '@/store';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createAppSlice, createSliceSelectors } from '@/store/reduxToolkit';
 
 export interface loadingState {
   loading: boolean;
@@ -9,7 +9,7 @@ const initialState: loadingState = {
   loading: false
 };
 
-export const loadingSlice = createSlice({
+export const loadingSlice = createAppSlice({
   name: 'loading',
   initialState,
   reducers: {
@@ -21,6 +21,10 @@ export const loadingSlice = createSlice({
 
 export const { setLoading } = loadingSlice.actions;
 
-export const selectLoading = (state: RootState) => state.loading.loading;
+const { selectSlice: selectLoadingState, selectFromSlice: selectLoadingValue } =
+  createSliceSelectors((state) => state.loading);
+
+export const selectLoading = selectLoadingValue((state) => state.loading);
+export { selectLoadingState };
 
 export default loadingSlice.reducer;

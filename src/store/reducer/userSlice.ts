@@ -1,7 +1,11 @@
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { RootState } from '@/store';
+import type { PayloadAction } from '@reduxjs/toolkit';
 import { fetchLogin } from '@/services/api';
 import { PURGE } from 'redux-persist';
+import {
+  createAppAsyncThunk,
+  createAppSlice,
+  createSliceSelectors
+} from '@/store/reduxToolkit';
 
 export interface UserState {
   userInfo: API.UserInfo;
@@ -15,7 +19,7 @@ const initialState: UserState = {
   isLogin: false
 };
 
-export const login = createAsyncThunk(
+export const login = createAppAsyncThunk(
   'user/fetchLogin',
   async (params: Expand<API.LoginParams>) => {
     const response = await fetchLogin(params);
@@ -23,7 +27,7 @@ export const login = createAsyncThunk(
   }
 );
 
-export const userSlice = createSlice({
+export const userSlice = createAppSlice({
   name: 'user',
   initialState,
   reducers: {
@@ -57,7 +61,12 @@ export const userSlice = createSlice({
 
 export const { setToken, setUserInfo } = userSlice.actions;
 
-export const selectToken = (state: RootState) => state.user.token;
-export const selectUserInfo = (state: RootState) => state.user.userInfo;
+const { selectSlice: selectUserState, selectFromSlice: selectUser } =
+  createSliceSelectors((state) => state.user);
+
+export const selectToken = selectUser((state) => state.token);
+export const selectUserInfo = selectUser((state) => state.userInfo);
+export const selectIsLogin = selectUser((state) => state.isLogin);
+export { selectUserState };
 
 export default userSlice.reducer;

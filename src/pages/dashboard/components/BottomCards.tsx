@@ -196,9 +196,9 @@ export default function BottomCards({ loading }: BottomCardsProps) {
     <Row gutter={16} style={{ marginTop: 16 }}>
       <Col span={8}>
         <Card
-          headStyle={cardHeadStyle}
+          styles={{ header: cardHeadStyle }}
           title="转化率"
-          bordered={false}
+          variant="borderless"
           loading={loading}
         >
           <Pie {...configPie} />
@@ -207,9 +207,9 @@ export default function BottomCards({ loading }: BottomCardsProps) {
       <Col span={8}>
         <Card
           loading={loading}
-          headStyle={cardHeadStyle}
+          styles={{ header: cardHeadStyle }}
           title="玉珏图"
-          bordered={false}
+          variant="borderless"
         >
           <RadialBar {...configRadialBar} />
         </Card>
@@ -217,9 +217,9 @@ export default function BottomCards({ loading }: BottomCardsProps) {
       <Col span={8}>
         <Card
           loading={loading}
-          headStyle={cardHeadStyle}
+          styles={{ header: cardHeadStyle }}
           title="词云图"
-          bordered={false}
+          variant="borderless"
         >
           <DemoWordCloud />
         </Card>

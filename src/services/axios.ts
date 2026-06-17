@@ -35,7 +35,11 @@ class Request {
     this.instance.interceptors.response.use(
       (response: AxiosResponse<DTO>) => {
         const { headers, data } = response;
-        if (headers['content-type']?.includes('application/json')) {
+        const contentType = headers['content-type'];
+        if (
+          typeof contentType === 'string' &&
+          contentType.includes('application/json')
+        ) {
           // 服务端自定义的一套状态码，并不是真实的http状态码，如果处理http状态码错误，请至下面error错误函数中修改
           if (data.Code !== 200) {
             const errorText =
