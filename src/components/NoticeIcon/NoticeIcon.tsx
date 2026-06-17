@@ -138,11 +138,11 @@ const NoticeIcon: React.FC<NoticeIconProps> & {
 
   return (
     <Popover
-      styles={{ body: { padding: 0 } }}
+      styles={{ container: { padding: 0 } }}
       showArrow={false}
       placement="bottomRight"
       content={notificationBox as React.ReactElement}
-      overlayClassName={styles.popover}
+      classNames={{ root: styles.popover }}
       trigger={['click']}
       open={visible}
       onOpenChange={setVisible}

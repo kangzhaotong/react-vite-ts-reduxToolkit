@@ -1,29 +1,16 @@
-import { ProFormDigit, ProFormItemProps } from '@ant-design/pro-components';
+import { Form, Input } from 'antd';
+import type { FormItemProps, InputProps } from 'antd';
 
 export default function PhoneNumber({
-  fieldProps,
   rules = [],
-  ...props
-}: ProFormItemProps) {
+  fieldProps,
+  ...formItemProps
+}: FormItemProps & {
+  fieldProps?: InputProps;
+}) {
   return (
-    <ProFormDigit
-      fieldProps={{
-        controls: false,
-        maxLength: 13,
-        precision: 0,
-        formatter: (value, info) => {
-          const str = String(value);
-          if (str.length >= 3 && str.length < 7) {
-            return str.replace(/^(\d{3})(\d{0,4})/, '$1 $2');
-          }
-          if (str.length >= 7 && str.length <= 11) {
-            return str.replace(/^(\d{3})(\d{4})(\d{0,4})/g, '$1 $2 $3');
-          }
-          return str;
-        },
-        ...fieldProps
-      }}
-      placeholder="请输入手机号码"
+    <Form.Item
+      {...formItemProps}
       rules={[
         {
           required: true,
@@ -35,7 +22,12 @@ export default function PhoneNumber({
         },
         ...rules
       ]}
-      {...props}
-    />
+    >
+      <Input
+        maxLength={13}
+        placeholder="请输入手机号码"
+        {...fieldProps}
+      />
+    </Form.Item>
   );
 }

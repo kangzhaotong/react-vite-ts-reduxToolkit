@@ -1,9 +1,9 @@
 import { FC, useState, createElement, ReactNode } from 'react';
-import { Space, Form, theme } from 'antd';
+import { Button, Space, Form, theme } from 'antd';
 import type { FormItemProps } from 'antd';
 import { useAppDispatch } from '@/hooks/useAppHooks';
 import { message } from '@/hooks/useGlobalTips';
-import { login } from '@/store/reducer/userSlice';
+import { login, selectToken, selectUserInfo } from '@/store/reducer/userSlice';
 import styles from './login.module.css';
 import { useLocation, useNavigate } from 'react-router-dom';
 import classnames from 'classnames';
@@ -14,9 +14,7 @@ import {
   EyeOutlined,
   EyeInvisibleOutlined
 } from '@ant-design/icons';
-import { LoginForm } from '@ant-design/pro-components';
 import LoginLogo from './LoginLogo';
-import { selectToken } from '@/store/reducer/userSlice';
 //redux原生和dva的区别就是dva的方法按照约定式文件是不需要手动导入的
 const FormItem = Form.Item;
 const { useToken } = theme;
@@ -53,7 +51,6 @@ export default function Login() {
     await dispatch(
       login({ username: values.username, password: values.password })
     ).unwrap(); // return originalPromiseResult
-    console.log(token, userInfo, 'tokentokentokentoken');
     message.success('登录成功');
     navigate(
       prev_page_location
@@ -64,19 +61,27 @@ export default function Login() {
   return (
     <LoginContainer>
       <div>
-        <LoginForm
-          title={<LoginLogo />}
-          subTitle={<span className={styles.subtitle}>React模板</span>}
+        <div style={{ textAlign: 'center', marginBottom: 24 }}>
+          <LoginLogo />
+          <span className={styles.subtitle}>React模板</span>
+        </div>
+        <Form
           initialValues={{
             username: 'admin',
             password: '123456'
           }}
           onFinish={onFinish}
-          actions={<Actions />}
+          layout="vertical"
         >
           <UserName name="username" />
           <Password name="password" />
-        </LoginForm>
+          <FormItem style={{ marginTop: 32, marginBottom: 0 }}>
+            <Button type="primary" htmlType="submit" block size="large">
+              登录
+            </Button>
+          </FormItem>
+          <Actions />
+        </Form>
       </div>
     </LoginContainer>
   );
@@ -153,7 +158,7 @@ function Password(formItemProps: FormItemProps) {
 
 function Actions() {
   return (
-    <Space>
+    <Space style={{ marginTop: 16 }}>
       {/* 其他登录方式 */}
       {/* <AlipayCircleFilled style={{ ...iconStyles, color: '#1976ff' }} /> */}
     </Space>

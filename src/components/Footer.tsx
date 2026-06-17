@@ -1,33 +1,28 @@
 import React from 'react';
 import { GithubOutlined } from '@ant-design/icons';
-import { DefaultFooter } from '@ant-design/pro-components';
+import { Space } from 'antd';
 
 const Footer: React.FC = () => {
   return (
-    <DefaultFooter
+    <footer
       className="site-footer"
-      copyright={false}
-      links={[
-        {
-          key: 'source-code',
-          title: 'Source Code',
-          href: 'https://baidu.com',
-          blankTarget: true
-        },
-        {
-          key: 'github',
-          title: <GithubOutlined />,
-          href: 'https://baidu.com',
-          blankTarget: true
-        },
-        {
-          key: 'Preview',
-          title: 'Preview',
-          href: 'https://baidu.com',
-          blankTarget: true
-        }
-      ]}
-    />
+      style={{
+        padding: '16px 24px',
+        textAlign: 'center'
+      }}
+    >
+      <Space size="large" wrap>
+        <a href="https://baidu.com" target="_blank" rel="noreferrer">
+          Source Code
+        </a>
+        <a href="https://baidu.com" target="_blank" rel="noreferrer">
+          <GithubOutlined />
+        </a>
+        <a href="https://baidu.com" target="_blank" rel="noreferrer">
+          Preview
+        </a>
+      </Space>
+    </footer>
   );
 };
 

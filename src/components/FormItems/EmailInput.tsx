@@ -1,9 +1,16 @@
-import { ProFormText, ProFormItemProps } from '@ant-design/pro-components';
+import { Form, Input } from 'antd';
+import type { FormItemProps, InputProps } from 'antd';
 
-export default function EmailInput({ rules = [], ...props }: ProFormItemProps) {
+export default function EmailInput({
+  rules = [],
+  fieldProps,
+  ...formItemProps
+}: FormItemProps & {
+  fieldProps?: InputProps;
+}) {
   return (
-    <ProFormText
-      placeholder="请输入邮箱"
+    <Form.Item
+      {...formItemProps}
       rules={[
         {
           pattern:
@@ -12,7 +19,8 @@ export default function EmailInput({ rules = [], ...props }: ProFormItemProps) {
         },
         ...rules
       ]}
-      {...props}
-    />
+    >
+      <Input placeholder="请输入邮箱" {...fieldProps} />
+    </Form.Item>
   );
 }

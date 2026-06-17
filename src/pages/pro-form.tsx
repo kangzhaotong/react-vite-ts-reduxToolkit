@@ -1,13 +1,21 @@
-import { ProForm, ProFormText } from '@ant-design/pro-components';
+import { Button, Form, Input } from 'antd';
 
 export default () => {
   return (
-    <ProForm
+    <Form
+      layout="vertical"
       onFinish={async (values) => {
         console.log(values);
       }}
     >
-      <ProFormText name="name" label="姓名" />
-    </ProForm>
+      <Form.Item name="name" label="姓名">
+        <Input />
+      </Form.Item>
+      <Form.Item>
+        <Button type="primary" htmlType="submit">
+          提交
+        </Button>
+      </Form.Item>
+    </Form>
   );
 };
