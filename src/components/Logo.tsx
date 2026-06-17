@@ -1,5 +1,7 @@
+import { useLayoutStore } from '@/store';
+
 export default function Logo() {
-  const collapsed = useAppSelector(selectCollapsed);
+  const collapsed = useLayoutStore((state) => state.collapsed);
   return (
     <div className="logo">
       <img

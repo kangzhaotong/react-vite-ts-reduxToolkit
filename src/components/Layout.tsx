@@ -12,12 +12,13 @@ import LayoutHeader from './Header';
 import Loading from './Loading';
 import Logo from './Logo';
 import Footer from './Footer';
-import { selectLayoutState } from '@/store/reducer/layoutSlice';
+import { useLayoutStore } from '@/store';
 
 const { Sider, Content } = Layout;
 
 export default function AdminLayout() {
-  const { collapsed, layout } = useAppSelector(selectLayoutState);
+  const collapsed = useLayoutStore((state) => state.collapsed);
+  const layout = useLayoutStore((state) => state.layout);
   return (
     <Layout hasSider>
       {layout === 'side' ? (

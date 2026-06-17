@@ -1,6 +1,6 @@
 import { LoadingOutlined } from '@ant-design/icons';
 import { Spin, Row, Col } from 'antd';
-import { selectIsDarkMode } from '@/store/reducer/layoutSlice';
+import { useLayoutStore } from '@/store';
 
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
 
@@ -14,7 +14,7 @@ interface LoadingParams {
  * @returns
  */
 export default function Loading({ height }: LoadingParams) {
-  const isDarkMode = useAppSelector(selectIsDarkMode);
+  const isDarkMode = useLayoutStore((state) => state.isDarkMode);
   return (
     <Row
       align="middle"

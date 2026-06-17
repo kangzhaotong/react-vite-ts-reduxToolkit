@@ -1,9 +1,7 @@
 import { UserOutlined } from '@ant-design/icons';
 import { Dropdown, Row, Col, Avatar } from 'antd';
 import type { MenuProps } from 'antd';
-import { persistor } from '@/store';
-import { selectUserInfo } from '@/store/reducer/userSlice';
-import { useAppSelector } from '@/hooks/useAppHooks';
+import { useUserStore } from '@/store';
 import {
   FormOutlined,
   PoweroffOutlined,
@@ -35,10 +33,11 @@ export default function PersonalCenterEntry() {
       key: PersonalCenterMenuKeys.Logout,
       danger: true,
       label: '退出登录',
-      icon: <PoweroffOutlined />
+        icon: <PoweroffOutlined />
     }
   ];
-  const userInfo = useAppSelector(selectUserInfo);
+  const userInfo = useUserStore((state) => state.userInfo);
+  const resetUser = useUserStore((state) => state.reset);
   return (
     <Dropdown
       trigger={['hover']}
@@ -54,7 +53,7 @@ export default function PersonalCenterEntry() {
               navigate('/change-password');
               break;
             case PersonalCenterMenuKeys.Logout:
-              persistor.purge(); // 清楚硬盘（如：localStorage）中的所有数据
+              resetUser();
               break;
           }
         }

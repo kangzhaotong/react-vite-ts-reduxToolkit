@@ -1,32 +1,12 @@
-import React, { useEffect } from 'react';
-import { ConfigProvider, Space } from 'antd';
+import React from 'react';
+import { Space } from 'antd';
 import { CheckOutlined } from '@ant-design/icons';
-import { useAppSelector, useAppDispatch } from '@/hooks/useAppHooks';
-import { selectThemeColor, setThemeColor } from '@/store/reducer/layoutSlice';
 import { ThemeColors } from '@/config';
-
-export function ThemeColorConfigProvider({
-  children
-}: {
-  children: React.ReactNode;
-}) {
-  const themeColor = useAppSelector(selectThemeColor);
-  return (
-    <ConfigProvider
-      theme={{
-        token: {
-          colorPrimary: themeColor
-        }
-      }}
-    >
-      {children}
-    </ConfigProvider>
-  );
-}
+import { useLayoutStore } from '@/store';
 
 export function ThemeColorsSelect() {
-  const dispatch = useAppDispatch();
-  const themeColor = useAppSelector(selectThemeColor);
+  const themeColor = useLayoutStore((state) => state.themeColor);
+  const setThemeColor = useLayoutStore((state) => state.setThemeColor);
   return (
     <Space>
       {ThemeColors.map((color, index) => (
@@ -35,7 +15,7 @@ export function ThemeColorsSelect() {
           color={color}
           isActive={themeColor === color}
           onClick={() => {
-            dispatch(setThemeColor(color));
+            setThemeColor(color);
           }}
         />
       ))}

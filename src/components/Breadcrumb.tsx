@@ -7,7 +7,7 @@
 import React, { useMemo } from 'react';
 import { Breadcrumb } from 'antd';
 import { Link } from 'react-router-dom';
-import { selectBreadcrumb, setBreadcrumb } from '@/store/reducer/layoutSlice';
+import { useLayoutStore } from '@/store';
 import { MenuItem } from '@/config';
 
 /**
@@ -16,7 +16,7 @@ import { MenuItem } from '@/config';
  * @returns
  */
 export default function LayoutBreadcrumb() {
-  const breadcrumb = useAppSelector(selectBreadcrumb);
+  const breadcrumb = useLayoutStore((state) => state.breadcrumb);
   const breadItems = useMemo(
     () =>
       breadcrumb.map((item, index) => {
@@ -47,7 +47,7 @@ export function useBreadcrumbfromMenuData(
   { menu, menuStatePathKeys = [] }: UseBreadcrumbfromMenuDataProps,
   deps: React.DependencyList
 ) {
-  const dispatch = useAppDispatch();
+  const setBreadcrumb = useLayoutStore((state) => state.setBreadcrumb);
   useEffect(() => {
     if (!menuStatePathKeys[0]) {
       return;
@@ -59,6 +59,6 @@ export function useBreadcrumbfromMenuData(
       breadcrumbPath.push(currentLevel.label);
       return currentLevel?.children || [];
     }, menu);
-    dispatch(setBreadcrumb(breadcrumbPath));
+    setBreadcrumb(breadcrumbPath);
   }, deps);
 }

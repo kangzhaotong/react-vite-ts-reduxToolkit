@@ -23,7 +23,7 @@ import type { SetState } from 'ahooks/es/useSetState';
 import * as config from '@/config';
 import type { MenuItem } from '@/config';
 import { fetchUserMenu } from '@/services/api';
-import { selectLayout } from '@/store/reducer/layoutSlice';
+import { useLayoutStore } from '@/store';
 
 interface State {
   openKeys: string[];
@@ -35,7 +35,7 @@ type MenuItemType = NonNullable<MenuProps['items']>[number];
 export default function LayoutMenu() {
   const navigate = useNavigate();
 
-  const layout = useAppSelector(selectLayout);
+  const layout = useLayoutStore((state) => state.layout);
 
   const menuData = useMenuData();
   const [state, setState] = useSetState<State>({

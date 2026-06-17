@@ -1,8 +1,7 @@
 import { useEffect } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { useAppSelector } from '@/hooks/useAppHooks';
 import { fetchIsTokenValid } from '@/services/api';
-import { selectToken } from '@/store/reducer/userSlice';
+import { useUserStore } from '@/store';
 import { useRequest } from 'ahooks';
 
 /**
@@ -11,7 +10,7 @@ import { useRequest } from 'ahooks';
  */
 export default function RouterAuth() {
   const location = useLocation();
-  const token = useAppSelector(selectToken);
+  const token = useUserStore((state) => state.token);
 
   const { data: tokenIsValid = true, run } = useRequest(fetchIsTokenValid, {
     manual: true

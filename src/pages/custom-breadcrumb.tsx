@@ -1,9 +1,8 @@
-import { useAppDispatch } from '@/hooks/useAppHooks';
-import { setBreadcrumb } from '@/store/reducer/layoutSlice';
 import { Button, Alert } from 'antd';
+import { useLayoutStore } from '@/store';
 
 export default function CustomBreadcrumb() {
-  const dispatch = useAppDispatch();
+  const setBreadcrumb = useLayoutStore((state) => state.setBreadcrumb);
   return (
     <>
       <div style={{ marginBottom: 20 }}>
@@ -23,19 +22,17 @@ export default function CustomBreadcrumb() {
       <Button
         type="primary"
         onClick={() => {
-          dispatch(
-            setBreadcrumb([
-              '自定义1',
-              { name: '自定义2', path: '/' },
-              '自定义3'
-            ])
-          );
+          setBreadcrumb([
+            '自定义1',
+            { name: '自定义2', path: '/' },
+            '自定义3'
+          ]);
         }}
       >
         点击改变当前页面的面包屑
       </Button>
       <div style={{ margin: '30px 0' }}>
-        <code>{`dispatch(setBreadcrumb(["自定义1", "自定义2"]))`}</code>
+        <code>{`setBreadcrumb(["自定义1", "自定义2"])`}</code>
       </div>
     </>
   );

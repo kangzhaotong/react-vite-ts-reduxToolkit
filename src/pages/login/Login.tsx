@@ -1,9 +1,8 @@
 import { FC, useState, createElement, ReactNode } from 'react';
 import { Button, Space, Form, theme } from 'antd';
 import type { FormItemProps } from 'antd';
-import { useAppDispatch } from '@/hooks/useAppHooks';
 import { message } from '@/hooks/useGlobalTips';
-import { login, selectToken, selectUserInfo } from '@/store/reducer/userSlice';
+import { useUserStore } from '@/store';
 import styles from './login.module.css';
 import { useLocation, useNavigate } from 'react-router-dom';
 import classnames from 'classnames';
@@ -40,17 +39,13 @@ const LoginContainer: FC<Container> = ({ children }) => {
 export default function Login() {
   const location = useLocation();
   const navigate = useNavigate();
-  const token = useAppSelector(selectToken);
-  const userInfo = useAppSelector(selectUserInfo);
+  const login = useUserStore((state) => state.login);
   const prev_page_location = location.state as typeof location;
-  const dispatch = useAppDispatch();
 
   const onFinish: (formData: any) => Promise<boolean | void> = async (
     values
   ) => {
-    await dispatch(
-      login({ username: values.username, password: values.password })
-    ).unwrap(); // return originalPromiseResult
+    await login({ username: values.username, password: values.password });
     message.success('登录成功');
     navigate(
       prev_page_location

@@ -16,17 +16,10 @@ import React, {
 // import { flushSync } from 'react-dom';
 import { Input, Button } from 'antd';
 import useSWR from 'swr';
-// redux原生和dva的区别就是dva的方法按照约定式文件是不需要手动导入的
-import {
-  increment,
-  decrement,
-  incrementByAmount,
-  selectCount,
-  selectCounterInitData
-} from '@/store/reducer/counterSlice';
 import type { InputRef } from 'antd';
 import styles from './index.module.less';
 import { fetSwr } from '@/services/api';
+import { useCounterStore } from '@/store';
 interface params {
   data: string;
   handelClick: () => void;
@@ -40,9 +33,10 @@ const UseMemoChild = React.memo(Child);
 
 const Home: React.FC = () => {
   const inputRef = useRef<InputRef>(null);
-  const dispatch = useAppDispatch();
-  const counter = useAppSelector(selectCount);
-  const initData = useAppSelector(selectCounterInitData);
+  const counter = useCounterStore((state) => state.value);
+  const initData = useCounterStore((state) => state.initData);
+  const increment = useCounterStore((state) => state.increment);
+  const decrement = useCounterStore((state) => state.decrement);
   const { data } = useSWR('/analysisChart', fetSwr);
   const [name, setName] = useState('name测试');
   const [inputCurrentVal, setInputCurrentVal] = useState('测试');
@@ -64,11 +58,11 @@ const Home: React.FC = () => {
 
   const startTransition = () => {
     // 触发
-    dispatch(decrement());
+    decrement();
     setValue(`${inputRef.current?.input?.value}11`);
   };
   const transitionHandle = () => {
-    dispatch(increment());
+    increment();
     setTransion(!isTransition);
   };
 

@@ -2,8 +2,7 @@ import axios from 'axios';
 import type { AxiosInstance, AxiosResponse, AxiosRequestConfig } from 'axios';
 import { ApiBaseUrl, ApiSessionKey, ApiTimeout, HttpStatus } from '@/config';
 import type { DTO, HttpStatusCode } from '@/config';
-import { selectToken } from '@/store/reducer/userSlice';
-import { store, persistor } from '@/store';
+import { getUserToken, resetUser } from '@/store';
 import { message } from '@/hooks/useGlobalTips';
 import { downloadStreamFile } from '@/utils/utils';
 
@@ -21,7 +20,7 @@ class Request {
     // 请求拦截器
     this.instance.interceptors.request.use(
       (config) => {
-        const token = selectToken(store.getState());
+        const token = getUserToken();
         if (token) {
           config.headers![ApiSessionKey] = token;
         }
@@ -46,7 +45,7 @@ class Request {
               data.Message ||
               HttpStatus[data.Code as HttpStatusCode] ||
               'HTTP响应错误';
-            data.Code === 401 && persistor.purge(); // 退出登录
+            data.Code === 401 && resetUser(); // 退出登录
             message.error(errorText);
             return Promise.reject(errorText);
           }

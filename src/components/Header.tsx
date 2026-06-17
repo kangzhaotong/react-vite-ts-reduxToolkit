@@ -3,23 +3,20 @@ import { MenuUnfoldOutlined, MenuFoldOutlined } from '@ant-design/icons';
 import { Layout, Row, Col, Space } from 'antd';
 import LayoutBreadcrumb from './Breadcrumb';
 import PersonalCenter from './PersonalCenter';
-import {
-  selectIsDarkMode,
-  selectLayoutState,
-  setCollapsed
-} from '@/store/reducer/layoutSlice';
 import LocalSettingsHeaderButton from './LocalSettings';
 import { FullScreenHeaderButton } from './FullScreen';
 import NoticeHeaderButton from './NoticeIcon';
 import HeaderButton from './HeaderButton';
 import LayoutMenu from './Menu';
+import { useLayoutStore } from '@/store';
 
 const { Header } = Layout;
 
 export default function LayoutHeader() {
-  const isDarkMode = useAppSelector(selectIsDarkMode);
-  const dispatch = useAppDispatch();
-  const { collapsed, layout } = useAppSelector(selectLayoutState);
+  const isDarkMode = useLayoutStore((state) => state.isDarkMode);
+  const collapsed = useLayoutStore((state) => state.collapsed);
+  const layout = useLayoutStore((state) => state.layout);
+  const setCollapsed = useLayoutStore((state) => state.setCollapsed);
   return (
     <Header
       style={{
@@ -36,7 +33,7 @@ export default function LayoutHeader() {
               icon={React.createElement(
                 collapsed ? MenuUnfoldOutlined : MenuFoldOutlined
               )}
-              onClick={() => dispatch(setCollapsed(!collapsed))}
+              onClick={() => setCollapsed(!collapsed)}
             />
             <LayoutBreadcrumb />
           </Space>

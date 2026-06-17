@@ -1,16 +1,15 @@
 import { fetchUserInfo } from '@/services/api';
-import { setUserInfo } from '@/store/reducer/userSlice';
-import { store } from '@/store';
+import { getUserState, setUserInfo, useUserStore } from '@/store';
 
 export const useUserInfo = function () {
-  return useAppSelector(selectUserInfo);
+  return useUserStore((state) => state.userInfo);
 };
 
 export const initUserInfo = async function () {
-  const user = JSON.parse(localStorage.getItem('persist:user') || '{}');
+  const user = getUserState();
   if (!user.token) {
     return;
   }
   const userInfo = await fetchUserInfo();
-  store.dispatch(setUserInfo(userInfo));
+  setUserInfo(userInfo);
 };

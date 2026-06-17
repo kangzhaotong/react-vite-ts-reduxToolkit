@@ -39,10 +39,17 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          react: ['react'],
-          'antd': ['antd'],
-        },
-      },
+          'react-vendor': ['react', 'react-dom'],
+          'router-vendor': ['react-router-dom'],
+          'antd-core': ['antd'],
+          'antd-icons': ['@ant-design/icons'],
+          'state-vendor': ['ahooks', 'axios', 'swr', 'zustand'],
+          'charts-vendor': ['@ant-design/plots'],
+          'flowchart-vendor': ['@ant-design/flowchart'],
+          'three-vendor': ['three', '@tweenjs/tween.js'],
+          'd3-vendor': ['d3']
+        }
+      }
     },
     // 传递给 Terser 的更多 minify 选项。
     terserOptions: {
@@ -57,7 +64,7 @@ export default defineConfig({
     AutoImport({
       imports: ['react'],
       dts: 'src/auto-imports.d.ts',
-      dirs: ['src/hooks', 'src/store/reducer'],
+      dirs: ['src/hooks', 'src/store'],
       eslintrc: {
         enabled: true, // Default `false`
         filepath: './.eslintrc-auto-import.json', // Default `./.eslintrc-auto-import.json`
