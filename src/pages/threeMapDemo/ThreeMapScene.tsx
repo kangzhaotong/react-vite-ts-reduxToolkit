@@ -19,8 +19,9 @@ import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry';
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js';
 import TWEEN from '@tweenjs/tween.js';
 import geoJson100000_Full from './json/100000_full.json';
+import geoJson450000_Full from './json/450000_full.json';
+import geoJson450100_Full from './json/450100_full.json';
 // import geoJson450100 from './json/450100.json';
-// import geoJson450000_Full from './json/450000_full.json';
 // import geoJson from './json/450100_full.json';
 import circle1 from '@/assets/images/map-circle-1.png';
 import circle2 from '@/assets/images/map-circle-2.png';
@@ -150,6 +151,76 @@ const barMaterial = new THREE.MeshPhongMaterial({
 const raycaster = new THREE.Raycaster();
 // 射线
 const mouse = new THREE.Vector2();
+const ROOT_ADCODE = '100000';
+// DataV v2 的 full 数据是真实下级边界；v3 部分省份会出现属性是市、几何仍是整省的问题。
+const REMOTE_GEO_JSON_HOST = 'https://geo.datav.aliyun.com/areas_v2/bound';
+const DYNAMIC_MAP_EXTENT_RATIO = {
+  horizontal: 0.55,
+  vertical: 0.58
+};
+
+type MapRegionConfig = {
+  name: string;
+  parentAdcode: string | null;
+  json: any;
+  projection?: {
+    center: [number, number];
+    scale: number;
+  };
+};
+
+const mapDataRegistry: Record<string, MapRegionConfig> = {
+  [ROOT_ADCODE]: {
+    name: '全国',
+    parentAdcode: null,
+    json: geoJson100000_Full,
+    projection: {
+      center: [108.778074408, 30.0572355018],
+      scale: 1500
+    }
+  },
+  '450000': {
+    name: '广西壮族自治区',
+    parentAdcode: '100000',
+    json: geoJson450000_Full,
+    projection: {
+      center: [108.7944, 23.8334],
+      scale: 8000
+    }
+  },
+  '450100': {
+    name: '南宁市',
+    parentAdcode: '450000',
+    json: geoJson450100_Full,
+    projection: {
+      center: [108.467546, 23.055985],
+      scale: 36000
+    }
+  }
+};
+
+const getRemoteGeoJsonUrl = (adcode: string) =>
+  `${REMOTE_GEO_JSON_HOST}/${adcode}_full.json`;
+
+const isSelfBoundaryOnly = (json: any, adcode: string) => {
+  const firstFeature = json?.features?.[0];
+
+  return (
+    json?.features?.length === 1 &&
+    String(firstFeature?.properties?.adcode) === adcode
+  );
+};
+
+const createRemoteRegionConfig = (
+  adcode: string,
+  json: any,
+  parentAdcode: string,
+  fallbackName = ''
+): MapRegionConfig => ({
+  name: fallbackName || json.features[0]?.properties?.parent?.name || adcode,
+  parentAdcode,
+  json
+});
 
 let mapIndex = 0;
 let mapTimer: any;
@@ -158,6 +229,9 @@ let deptTimer: any;
 let animationLoop: any;
 const _dataAccess: any = {};
 const ThreeMapDemo = () => {
+  const [currentRegion, setCurrentRegion] = useState(
+    mapDataRegistry[ROOT_ADCODE]
+  );
   const renderer: any = useRef<THREE.WebGLRenderer | null>();
   const renderer2: any = useRef();
   const camera: MutableRefObject<THREE.PerspectiveCamera> | any = useRef();
@@ -168,10 +242,17 @@ const ThreeMapDemo = () => {
   const cylinder: MutableRefObject<THREE.Mesh> | any = useRef(); // 锥体
   const diffusion: MutableRefObject<THREE.Mesh> | any = useRef(); // 扩散
 
+  const underlayGroup = useRef(new THREE.Group());
   const mapGroup = useRef(new THREE.Group());
   const barGeoGroup = useRef(new THREE.Group());
   const markerGroup: MutableRefObject<THREE.Group[]> = useRef([]);
   const labelGroup: any = useRef([]);
+  const currentGeoJsonRef = useRef(mapDataRegistry[ROOT_ADCODE].json);
+  const currentAdcodeRef = useRef(ROOT_ADCODE);
+  const loadingAdcodeRef = useRef('');
+  const underlayMaterialRef = useRef<THREE.MeshPhongMaterial | null>(null);
+  const underlayLineMaterialRef = useRef<THREE.LineBasicMaterial | null>(null);
+  const overlayLineMaterialRef = useRef<THREE.LineBasicMaterial | null>(null);
 
   const divRef = useRef<HTMLDivElement | null>(null);
   const nameRef: any = useRef(null);
@@ -223,6 +304,9 @@ const ThreeMapDemo = () => {
   const initScene = () => {
     scene.current = new THREE.Scene();
     scene2.current = new THREE.Scene();
+    underlayGroup.current = new THREE.Group();
+    mapGroup.current = new THREE.Group();
+    barGeoGroup.current = new THREE.Group();
     scene.background = new THREE.Color(mapPalette.sceneBackground);
     // 雾化场景
     scene.fog = new THREE.Fog(mapPalette.sceneFog, 900, 3200);
@@ -461,33 +545,82 @@ const ThreeMapDemo = () => {
       linejoin: 'round' // ignored by WebGLRenderer
       // opacity: 0.1
     });
+    underlayMaterialRef.current = mapMaterial;
+    underlayLineMaterialRef.current = lineMaterial;
     const option = {
       mapMaterial,
       lineMaterial,
       altitude: 30,
       highlight: false
     };
-    // 全国;
-    createMap({ ...option, json: geoJson100000_Full });
-    // 广西省
-    // createMap({ ...option, json: geoJson100000_Full });
+    scene.current.add(underlayGroup.current);
+    scene.current.add(mapGroup.current);
 
     const lineMaterial2 = new THREE.LineBasicMaterial({
       color: mapPalette.innerLine,
       transparent: true,
       opacity: 0.6
     });
+    overlayLineMaterialRef.current = lineMaterial2;
     // 南宁市
     const option2 = {
-      json: geoJson100000_Full,
       mapMaterial: geoMaterial,
       lineMaterial: lineMaterial2,
       altitude: 1,
       highlight: true
     };
-    createMap(option2);
+    renderMap(currentGeoJsonRef.current, option, option2);
+  };
+  const getDynamicMapExtent = (
+    json: any
+  ): [[number, number], [number, number]] => {
+    // 远程省份没有手工 scale，使用统一舞台范围保持与广西本地视图接近的视觉比例。
+    const { horizontal, vertical } = DYNAMIC_MAP_EXTENT_RATIO;
 
-    scene.current.add(mapGroup.current);
+    return [
+      [-width * horizontal, -height * vertical],
+      [width * horizontal, height * vertical]
+    ];
+  };
+  const updateProjection = (json: any) => {
+    const currentConfig = mapDataRegistry[currentAdcodeRef.current];
+    if (currentConfig.projection) {
+      // 本地维护的区域使用固定投影，避免每次适配造成地图比例跳动。
+      projection = d3
+        .geoMercator()
+        .center(currentConfig.projection.center)
+        .scale(currentConfig.projection.scale)
+        .translate([0, 0]);
+      return;
+    }
+
+    // 动态远程区域使用 fitExtent，但范围按大屏舞台比例控制，不铺满整个画布。
+    projection = d3.geoMercator().fitExtent(getDynamicMapExtent(json), json);
+  };
+  const clearObjectGroup = (group: THREE.Group) => {
+    const children = [...group.children];
+    children.forEach((child) => {
+      dispose(group, child);
+    });
+  };
+  const renderMap = (json: any, underlayOption: any, overlayOption: any) => {
+    currentGeoJsonRef.current = json;
+    clearObjectGroup(underlayGroup.current);
+    clearObjectGroup(mapGroup.current);
+    clearObjectGroup(barGeoGroup.current);
+    if (labelGroup.current.length) {
+      labelGroup.current.forEach((item: any) => {
+        scene.current.remove(item);
+      });
+      labelGroup.current = [];
+    }
+
+    updateProjection(json);
+    createMap({ ...underlayOption, json });
+    createMap({ ...overlayOption, json });
+    initBar(json);
+    initLabel(json);
+    changeMapStyle('', 'click');
   };
   const createMap = (option: any) => {
     const { json, mapMaterial, lineMaterial, altitude, highlight, isBorder } =
@@ -500,6 +633,9 @@ const ThreeMapDemo = () => {
       // 创建地区容器
       const county: THREE.Object3D | any = new THREE.Object3D();
       county.name = properties.name;
+      county.userData = {
+        ...properties
+      };
       // const cLen = geometry.coordinates.length;
       for (const multiPolygon of geometry.coordinates) {
         // for (let j = 0; j < geometry.coordinates.length; j += 1) {
@@ -540,6 +676,9 @@ const ThreeMapDemo = () => {
                 const [x, y] = projection(properties.centroid);
                 mesh.name = properties.name;
                 mesh._centroid = [x, -y];
+                mesh.userData = {
+                  ...properties
+                };
                 county._centroid = [x, -y];
               }
 
@@ -567,7 +706,7 @@ const ThreeMapDemo = () => {
       // county.position.x = -width / 2;
       // county.position.z = -height / 2;
       if (!highlight) {
-        scene.current.add(county);
+        underlayGroup.current.add(county);
       } else {
         mapGroup.current.add(county);
       }
@@ -785,6 +924,7 @@ const ThreeMapDemo = () => {
     renderer.current?.setSize(width, height, true);
     renderer2.current?.setSize(width, height, true);
     css3DRenderer.current?.setSize(width, height);
+    renderCurrentRegion();
   };
   const onMouseEnter = (event: any) => {
     const getBoundingClientRect: any = divRef.current?.getBoundingClientRect();
@@ -806,6 +946,154 @@ const ThreeMapDemo = () => {
       changeMapStyle(object.name, 'hover');
     } else {
       changeMapStyle('', 'hover');
+    }
+  };
+  const isMapRenderReady = () => {
+    return (
+      Boolean(underlayMaterialRef.current) &&
+      Boolean(underlayLineMaterialRef.current) &&
+      Boolean(overlayLineMaterialRef.current)
+    );
+  };
+  const getCurrentRenderOptions = () => {
+    return {
+      underlay: {
+        mapMaterial: underlayMaterialRef.current,
+        lineMaterial: underlayLineMaterialRef.current,
+        altitude: 30,
+        highlight: false
+      },
+      overlay: {
+        mapMaterial: geoMaterial,
+        lineMaterial: overlayLineMaterialRef.current,
+        altitude: 1,
+        highlight: true
+      }
+    };
+  };
+  const renderCurrentRegion = () => {
+    if (
+      !isMapRenderReady()
+    ) {
+      return;
+    }
+
+    const { underlay, overlay } = getCurrentRenderOptions();
+    renderMap(currentGeoJsonRef.current, underlay, overlay);
+  };
+  const fetchRegionJson = async (adcode: string) => {
+    const url = getRemoteGeoJsonUrl(adcode);
+
+    try {
+      const res = await fetch(url);
+      if (!res.ok) {
+        return null;
+      }
+
+      const json = await res.json();
+
+      return isSelfBoundaryOnly(json, adcode) ? null : json;
+    } catch (error) {
+      console.warn('地图数据加载失败', url, error);
+    }
+
+    return null;
+  };
+  const getRegionConfig = async (
+    adcode: string,
+    fallbackName = ''
+  ): Promise<MapRegionConfig | null> => {
+    if (mapDataRegistry[adcode]) {
+      return mapDataRegistry[adcode];
+    }
+
+    if (loadingAdcodeRef.current === adcode) {
+      return null;
+    }
+
+    loadingAdcodeRef.current = adcode;
+    const json = await fetchRegionJson(adcode);
+    loadingAdcodeRef.current = '';
+
+    if (!json?.features?.length) {
+      return null;
+    }
+
+    const regionConfig = createRemoteRegionConfig(
+      adcode,
+      json,
+      currentAdcodeRef.current,
+      fallbackName
+    );
+    mapDataRegistry[adcode] = regionConfig;
+
+    return regionConfig;
+  };
+  const canDrillToRegion = (adcode: string) => {
+    // 全国可动态进入任意省；省内只允许进入已有本地配置，避免继续请求不可控层级。
+    return (
+      currentAdcodeRef.current === ROOT_ADCODE || Boolean(mapDataRegistry[adcode])
+    );
+  };
+  const restoreCamera = (duration = 1200) => {
+    const cameraAnim = new TWEEN.Tween(camera.current.position).to(
+      {
+        x: cameraPostion.x,
+        y: cameraPostion.y,
+        z: cameraPostion.z
+      },
+      duration
+    );
+    cameraAnim.easing(TWEEN.Easing.Quartic.Out).start();
+
+    const targetAnim = new TWEEN.Tween(controls.current.target).to(
+      { x: lookAt.x, y: lookAt.y, z: lookAt.z },
+      duration
+    );
+    targetAnim.easing(TWEEN.Easing.Quartic.Out).start();
+  };
+  const drillToRegion = async (adcode: string, name = '') => {
+    const nextRegion = await getRegionConfig(adcode, name);
+    if (!nextRegion) {
+      return;
+    }
+    currentAdcodeRef.current = adcode;
+    setCurrentRegion(nextRegion);
+    currentGeoJsonRef.current = nextRegion.json;
+    renderCurrentRegion();
+    restoreCamera();
+  };
+  const restoreMap = () => {
+    currentAdcodeRef.current = ROOT_ADCODE;
+    setCurrentRegion(mapDataRegistry[ROOT_ADCODE]);
+    currentGeoJsonRef.current = mapDataRegistry[ROOT_ADCODE].json;
+    renderCurrentRegion();
+    changeMapStyle('', 'click');
+    restoreCamera();
+  };
+  const onMapClick = (event: MouseEvent) => {
+    const getBoundingClientRect: any = divRef.current?.getBoundingClientRect();
+    mouse.x = ((event.clientX - getBoundingClientRect?.left) / width) * 2 - 1;
+    mouse.y =
+      -(((event.clientY - getBoundingClientRect?.top) / height) * 2) + 1;
+
+    raycaster.setFromCamera(mouse, camera.current);
+    const intersects = raycaster.intersectObjects(mapGroup.current.children, true);
+    if (!intersects.length) {
+      changeMapStyle('', 'click');
+      return;
+    }
+
+    const { object } = intersects[0] as any;
+    const adcode = String(object?.userData?.adcode || '');
+    const name = object?.name || '';
+    changeMapStyle(name, 'click');
+    if (
+      adcode &&
+      adcode !== currentAdcodeRef.current &&
+      canDrillToRegion(adcode)
+    ) {
+      drillToRegion(adcode, name);
     }
   };
   // 切换地区选中 材质
@@ -884,26 +1172,6 @@ const ThreeMapDemo = () => {
   };
   useEffect(() => {
     initThree();
-    // 墨卡托投影转换
-    // d3.v3
-    projection = d3
-      .geoMercator()
-      .center([108.778074408, 30.0572355018])
-      .scale(1500)
-      .translate([0, 0]);
-
-    // d3.v5
-    // 自动计算宽高和大小
-    //  fitExtent   两个数组参数分别：  []: 边界左边和上面, [] 边界右边和下边
-    // projection = d3.geoMercator().fitExtent([[-width / 2, -height / 2], [width / 2, height / 2]], geoJson);
-    // 注意 threejs 坐标0,0,0 是在画布的中间，所以要除以2处理
-    // projection = d3.geoMercator().fitSize([width, height], geoJson);
-    // fitSize 是 fitExtent 简写方式， 左上角为[0, 0]
-
-    // 为了不同分辨率显示大小一致，使用固定大小方式。
-    // 手动调整中心点和大小位移
-    // projection = d3.geoMercator().center([108.467546, 23.055985]).scale(36000).translate([0, 0]);
-
     initScene();
     initCamera();
     initLight();
@@ -912,8 +1180,6 @@ const ThreeMapDemo = () => {
     // initGrid();
     animation();
     initMesh();
-    initBar();
-    initLabel();
     initMarker();
     initCylinder();
     initDiffusion();
@@ -924,6 +1190,7 @@ const ThreeMapDemo = () => {
       onMouseEnter,
       false
     );
+    renderer2?.current?.domElement?.addEventListener('click', onMapClick, false);
 
     initAnim();
     // cityLoop();
@@ -935,18 +1202,12 @@ const ThreeMapDemo = () => {
         onMouseEnter,
         false
       );
+      renderer2.current?.domElement.removeEventListener('click', onMapClick, false);
       clearAll();
     };
   }, []);
-  const initLabel = () => {
-    if (labelGroup.current.length) {
-      labelGroup.current.forEach((item: any) => {
-        scene.current.remove(item);
-      });
-      labelGroup.current = [];
-    }
-
-    for (const feature of geoJson100000_Full.features) {
+  const initLabel = (json: any) => {
+    for (const feature of json.features) {
       const { properties } = feature;
       const target: any = {};
       // _cityData.find((item) => item.name === properties.name) || {};
@@ -1007,6 +1268,9 @@ const ThreeMapDemo = () => {
     geoHoverMaterial.dispose();
     geoActiveMaterial.dispose();
     barMaterial.dispose();
+    underlayMaterialRef.current?.dispose();
+    underlayLineMaterialRef.current?.dispose();
+    overlayLineMaterialRef.current?.dispose();
 
     const arr = scene.current.children.filter((x: any) => x);
     arr.forEach((a: any) => {
@@ -1057,24 +1321,37 @@ const ThreeMapDemo = () => {
       child instanceof Line2
     ) {
       if (child.material.map) child.material.map.dispose();
-      child.material.dispose();
+      if (
+        child.material !== geoMaterial &&
+        child.material !== geoHoverMaterial &&
+        child.material !== geoActiveMaterial &&
+        child.material !== underlayMaterialRef.current &&
+        child.material !== underlayLineMaterialRef.current &&
+        child.material !== overlayLineMaterialRef.current
+      ) {
+        child.material.dispose();
+      }
       child.geometry.dispose();
-    } else if (child.material) {
+    } else if (
+      child.material &&
+      child.material !== geoMaterial &&
+      child.material !== geoHoverMaterial &&
+      child.material !== geoActiveMaterial &&
+      child.material !== underlayMaterialRef.current &&
+      child.material !== underlayLineMaterialRef.current &&
+      child.material !== overlayLineMaterialRef.current
+    ) {
       child.material.dispose();
     }
     child.remove();
     parent.remove(child);
   };
-  function initBar() {
-    if (barGeoGroup.current) {
-      scene.current.remove(barGeoGroup.current);
-    }
-
-    const featureCount = geoJson100000_Full.features.length;
+  function initBar(json: any) {
+    const featureCount = json.features.length;
     const startColor = new THREE.Color(mapPalette.barStart);
     const endColor = new THREE.Color(mapPalette.barEnd);
 
-    for (const [featureIndex, feature] of geoJson100000_Full.features.entries()) {
+    for (const [featureIndex, feature] of json.features.entries()) {
       // const len = geoJson.features.length;
       // for (let i = 0; i < len; i += 1) {
       // const feature = geoJson.features[i];
@@ -1105,26 +1382,32 @@ const ThreeMapDemo = () => {
 
       barGeoGroup.current.add(boxMesh);
     }
-    scene.current.add(barGeoGroup.current);
+    if (!scene.current.children.includes(barGeoGroup.current)) {
+      scene.current.add(barGeoGroup.current);
+    }
   }
   return (
     <div className={styles.mapWrap}>
       <div className={`${styles.tabs} ${styles.tabsBottom}`}>
+        {currentRegion.parentAdcode ? (
+          <Button
+            onClick={() => {
+              drillToRegion(currentRegion.parentAdcode as string);
+            }}
+          >
+            返回上级
+          </Button>
+        ) : null}
         <Button
           onClick={() => {
-            // 相机位置
-            const cameraAnim = new TWEEN.Tween(camera.current.position).to(
-              { x: 0, y: -1250, z: 950 },
-              2000
-            );
-            cameraAnim.delay(500).easing(TWEEN.Easing.Quartic.Out).start();
-
-            // 相机中心点
-            const cameraAnim2 = new TWEEN.Tween(controls.current.target).to(
-              { x: lookAt.x, y: lookAt.y, z: lookAt.z },
-              2000
-            );
-            cameraAnim2.delay(500).easing(TWEEN.Easing.Quartic.Out).start();
+            restoreMap();
+          }}
+        >
+          恢复地图
+        </Button>
+        <Button
+          onClick={() => {
+            restoreCamera(2000);
           }}
         >
           恢复视角
