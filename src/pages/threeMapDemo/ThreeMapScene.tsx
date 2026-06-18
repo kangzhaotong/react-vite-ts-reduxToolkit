@@ -58,69 +58,94 @@ const glowTexture = (() => {
     return null;
   }
   const gradient = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
-  gradient.addColorStop(0, 'rgba(108, 241, 255, 0.42)');
-  gradient.addColorStop(0.45, 'rgba(45, 216, 255, 0.18)');
-  gradient.addColorStop(1, 'rgba(6, 17, 31, 0)');
+  gradient.addColorStop(0, 'rgba(184, 242, 255, 0.58)');
+  gradient.addColorStop(0.4, 'rgba(88, 206, 255, 0.3)');
+  gradient.addColorStop(1, 'rgba(7, 22, 37, 0)');
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, 256, 256);
   const texture = new THREE.CanvasTexture(canvas);
   texture.needsUpdate = true;
   return texture;
 })();
+// 地图配色
 const mapPalette = {
-  sceneBackground: 0x06111f,
-  sceneFog: 0x0b2340,
-  baseFill: 0x1f6fd1,
-  baseEmissive: 0x0b2754,
-  hoverFill: 0x5be7ff,
-  hoverEmissive: 0x124e6d,
-  activeFill: 0xffc857,
-  activeEmissive: 0x7a3c00,
-  underlayStart: 0x0b1f45,
-  underlayEnd: 0x2dd8ff,
-  outerLine: 0x4edbff,
-  innerLine: 0x8edfff,
-  barStart: 0x39d0ff,
-  barEnd: 0x8ef7ff,
-  barEmissive: 0x0d3764,
-  markerFill: 0xffd166,
-  markerEmissive: 0x824400,
-  diffusion: '#6cf1ff',
-  labelText: '#f4fdff',
-  labelValue: '#8feaff'
+  // 场景背景
+  sceneBackground: 0x0c2032,
+  // 场景雾化
+  sceneFog: 0x1e4b68,
+  // 地图基础颜色
+  baseFill: 0x46a4ea,
+  // 地图基础发光
+  baseEmissive: 0x1d4f74,
+  // 地图悬停颜色
+  hoverFill: 0x9bebff,
+  // 地图悬停发光
+  hoverEmissive: 0x2a6f89,
+  // 地图激活颜色
+  activeFill: 0xffd487,
+  // 地图激活发光
+  activeEmissive: 0x9c6325,
+  // 地图底层颜色
+  underlayStart: 0x1d4670,
+  // 地图底层颜色
+  underlayEnd: 0x7ee8ff,
+  // 地图外边框颜色
+  outerLine: 0x9feaff,
+  // 地图内边框颜色
+  innerLine: 0xe2fbff,
+  // 柱状图起始颜色
+  barStart: 0x71dbff,
+  // 柱状图结束颜色
+  barEnd: 0xe6fbff,
+  // 柱状图发光
+  barEmissive: 0x20557a,
+  // 标记点颜色
+  markerFill: 0xffdc95,
+  // 标记点发光
+  markerEmissive: 0xa16525,
+  // 扩散效果颜色
+  diffusion: '#b6f3ff',
+  // 标签文字颜色
+  labelText: '#f7feff',
+  // 标签值颜色
+  labelValue: '#b9efff'
 };
+// 地图材质
 const geoMaterial = new THREE.MeshPhongMaterial({
   color: mapPalette.baseFill,
   emissive: mapPalette.baseEmissive,
-  specular: 0x9be7ff,
-  shininess: 90,
+  specular: 0xe6fbff,
+  shininess: 128,
   transparent: true,
-  opacity: 0.82
+  opacity: 0.92
 });
+// 地图悬停材质
 const geoHoverMaterial = new THREE.MeshPhongMaterial({
   color: mapPalette.hoverFill,
   emissive: mapPalette.hoverEmissive,
-  specular: 0xc9f7ff,
-  shininess: 120,
+  specular: 0xf6feff,
+  shininess: 165,
   transparent: true,
-  opacity: 0.94
+  opacity: 0.98
 });
+// 地图激活材质
 const geoActiveMaterial = new THREE.MeshPhongMaterial({
   color: mapPalette.activeFill,
   emissive: mapPalette.activeEmissive,
-  specular: 0xfff2b0,
-  shininess: 130,
+  specular: 0xfff4d1,
+  shininess: 170,
   transparent: true,
-  opacity: 0.96
+  opacity: 0.99
 });
 
+// 柱状图材质
 const barMaterial = new THREE.MeshPhongMaterial({
   color: mapPalette.barStart,
   emissive: mapPalette.barEmissive,
-  specular: 0xc6ffff,
-  shininess: 120,
+  specular: 0xf0fdff,
+  shininess: 145,
   transparent: true,
-  opacity: 0.9
+  opacity: 0.94
 });
 const raycaster = new THREE.Raycaster();
 // 射线
@@ -363,7 +388,7 @@ const ThreeMapDemo = () => {
       const glowMaterial = new THREE.MeshBasicMaterial({
         map: glowTexture,
         transparent: true,
-        opacity: 0.78,
+        opacity: 0.92,
         depthWrite: false,
         blending: THREE.AdditiveBlending
       });
@@ -380,9 +405,9 @@ const ThreeMapDemo = () => {
       glowAnim;
     }
     const planes = [
-      { radius: 1400, map: texture1, rotate: Math.PI * 2, dur: 24000, opacity: 0.38, color: 0x5fdcff },
-      { radius: 1260, map: texture2, rotate: Math.PI * 2, dur: 16000, opacity: 0.46, color: 0x37c8ff },
-      { radius: 1160, map: texture3, rotate: Math.PI * 2, dur: 8000, opacity: 0.6, color: 0xaaf6ff }
+      { radius: 1400, map: texture1, rotate: Math.PI * 2, dur: 24000, opacity: 0.68, color: 0xa8ecff },
+      { radius: 1260, map: texture2, rotate: Math.PI * 2, dur: 16000, opacity: 0.82, color: 0x73d9ff },
+      { radius: 1160, map: texture3, rotate: Math.PI * 2, dur: 8000, opacity: 0.86, color: 0xe7fcff }
     ];
 
     planes.forEach((item) => {
@@ -416,20 +441,21 @@ const ThreeMapDemo = () => {
       new THREE.Color(mapPalette.underlayStart),
       new THREE.Color(mapPalette.underlayEnd)
     ];
+    // 地图材质
     const mapMaterial = new THREE.MeshPhongMaterial({
       vertexColors: true,
       color: new THREE.Color().lerpColors(colors[0], colors[1], 0.5),
-      emissive: 0x07162f,
-      specular: 0x7fe5ff,
-      shininess: 80,
+      emissive: 0x12314e,
+      specular: 0xc4f2ff,
+      shininess: 110,
       depthWrite: false,
       transparent: true,
-      opacity: 0.38
+      opacity: 0.56
     });
     const lineMaterial = new THREE.LineBasicMaterial({
       color: mapPalette.outerLine,
       transparent: true,
-      opacity: 0.72,
+      opacity: 0.86,
       linewidth: 1,
       linecap: 'round', // ignored by WebGLRenderer
       linejoin: 'round' // ignored by WebGLRenderer
@@ -621,8 +647,8 @@ const ThreeMapDemo = () => {
     const cylinderMaterial = new THREE.MeshPhongMaterial({
       color: mapPalette.markerFill,
       emissive: mapPalette.markerEmissive,
-      specular: 0xfff3c1,
-      shininess: 150
+      specular: 0xfff7d8,
+      shininess: 170
     });
 
     cylinder.current = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
