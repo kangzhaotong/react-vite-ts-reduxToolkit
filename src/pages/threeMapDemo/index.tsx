@@ -10,7 +10,7 @@ export default function ThreeMapDemo() {
       fallback={
         <div className={styles.mapWrap}>
           <div className={styles.mapLoading}>
-            <Spin size="large" tip="正在加载三维地图场景..." />
+            <Spin size="large" description="正在加载三维地图场景..." />
           </div>
         </div>
       }
