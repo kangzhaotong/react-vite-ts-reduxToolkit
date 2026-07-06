@@ -56,6 +56,11 @@ export const MenuData: MenuItem[] = [
     route: '/'
   },
   {
+    label: '流体模拟',
+    icon: 'DashboardOutlined',
+    route: '/drawGl'
+  },
+  {
     label: '学习组件',
     icon: 'BlockOutlined',
     route: '/learning'

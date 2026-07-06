@@ -9,6 +9,7 @@ const Login = lazy(() => import('@/pages/login/Login'));
 const ThreeMapDemo = lazy(() => import('@/pages/threeMapDemo/index'));
 const NotFound = lazy(() => import('@/pages/404'));
 const Test = lazy(() => import('@/pages/test'));
+const DrawGl = lazy(() => import('@/pages/drawGl/index'));
 const Learning = lazy(() => import('@/pages/learningComponent'));
 const ThreeDemo = lazy(() => import('@/pages/threeDemo'));
 const CustomBreadcrumb = lazy(() => import('@/pages/custom-breadcrumb'));
@@ -45,6 +46,10 @@ export const routes: RouteObject[] = [
               {
                 path: 'threeMapDemo',
                 element: <ThreeMapDemo />
+              },
+              {
+                path: 'drawGl',
+                element: <DrawGl />
               },
               {
                 path: 'learning',
