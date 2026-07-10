@@ -304,7 +304,7 @@ const WebGLFluidSimulation = () => {
             float noise = texture2D(uDithering, vUv * ditherScale).r;
             noise = noise * 2.0 - 1.0;
             bloom += noise / 255.0;
-            bloom = linearToGamma(bloom);
+            bloom = linearToGamma(bloom); 
             c += bloom;
         #endif
     
