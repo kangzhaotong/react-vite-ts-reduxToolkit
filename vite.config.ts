@@ -10,20 +10,19 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: '127.0.0.1:3008',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
-      },
+        target: 'https://www.fastmock.site',
+        changeOrigin: true
+      }
     },
     host: '0.0.0.0',
-    open: true,
+    open: true
   },
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
       axios: 'axios/dist/browser/axios.cjs'
     },
-    mainFields: ['module', 'jsnext:main', 'jsnext'],
+    mainFields: ['module', 'jsnext:main', 'jsnext']
   },
   build: {
     target: 'modules',
@@ -54,9 +53,9 @@ export default defineConfig({
     // 传递给 Terser 的更多 minify 选项。
     terserOptions: {
       compress: {
-        keep_infinity: true,
-      },
-    },
+        keep_infinity: true
+      }
+    }
   },
   plugins: [
     react(),

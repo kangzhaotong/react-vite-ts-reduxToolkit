@@ -15,6 +15,8 @@ const ThreeDemo = lazy(() => import('@/pages/threeDemo'));
 const CustomBreadcrumb = lazy(() => import('@/pages/custom-breadcrumb'));
 const Dashboard = lazy(() => import('@/pages/dashboard'));
 const DemoPage = lazy(() => import('@/pages/demoPage'));
+const RtkTest = lazy(() => import('@/pages/rtkTest'));
+const Test2 = lazy(() => import('@/pages/test2'));
 
 export const routes: RouteObject[] = [
   {
@@ -56,8 +58,12 @@ export const routes: RouteObject[] = [
                 element: <Learning />
               },
               {
-                path: 'test',
-                element: <Test />
+                path: 'rtkTest',
+                element: <RtkTest />
+              },
+              {
+                path: 'test2',
+                element: <Test2 />
               },
               {
                 path: 'threeDemo',
@@ -72,6 +78,10 @@ export const routes: RouteObject[] = [
                 element: <NotFound />
               }
             ]
+          },
+          {
+            path: '/test',
+            element: <Test />
           }
         ]
       }

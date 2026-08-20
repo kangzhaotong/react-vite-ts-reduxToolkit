@@ -18,8 +18,9 @@ export const ThemeColors = [
 ];
 
 // 请求相关
-export const ApiBaseUrl =
-  'https://www.fastmock.site/mock/d6f0134049a0e22b01d7aae6fafc9045/api';
+export const ApiBaseUrl = import.meta.env.DEV
+  ? '/api'
+  : 'https://www.fastmock.site/mock/d6f0134049a0e22b01d7aae6fafc9045/api';
 export const ApiTimeout = 30000;
 export const ApiSessionKey = 'sessionkey';
 export type HttpStatusCode = keyof typeof HttpStatus;
@@ -69,6 +70,16 @@ export const MenuData: MenuItem[] = [
     label: '测试页',
     icon: 'HomeOutlined',
     route: '/test'
+  },
+  {
+    label: 'RTK 测试',
+    icon: 'LinkOutlined',
+    route: '/rtkTest'
+  },
+  {
+    label: '测试页 2',
+    icon: 'BlockOutlined',
+    route: '/test2'
   },
   {
     label: 'Three3D地图',
