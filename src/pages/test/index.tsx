@@ -10,7 +10,7 @@ export default function DemoFlowchart() {
       fallback={
         <div className={styles.flowBox}>
           <div className={styles.flowLoading}>
-            <Spin size="large" tip="正在加载流程图编辑器..." />
+            <Spin size="large" description="正在加载流程图编辑器..." />
           </div>
         </div>
       }

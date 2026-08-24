@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { fetchIsTokenValid } from '@/services/api';
 import { useUserStore } from '@/store';
 import { useRequest } from 'ahooks';
@@ -17,8 +17,11 @@ export default function RouterAuth() {
   });
 
   useEffect(() => {
+    if (!token) {
+      return;
+    }
     run();
-  }, [location]);
+  }, [location, token, run]);
 
   // if (!token || !tokenIsValid) {
   //   return <Navigate to="/login" state={location} replace />;

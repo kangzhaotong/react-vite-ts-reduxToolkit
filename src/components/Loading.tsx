@@ -25,7 +25,7 @@ export default function Loading({ height }: LoadingParams) {
       }}
     >
       <Col>
-        <Spin indicator={antIcon} tip="加载中...">
+        <Spin indicator={antIcon} description="加载中...">
           <div style={{ width: 80, height: 80 }} />
         </Spin>
       </Col>

@@ -173,7 +173,7 @@ export default function SendSmsPage() {
 
             <Form.Item label="变量">
               <Space
-                direction="vertical"
+                orientation="vertical"
                 style={{ width: '100%' }}
                 size="middle"
               >

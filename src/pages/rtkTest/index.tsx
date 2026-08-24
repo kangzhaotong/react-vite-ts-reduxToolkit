@@ -64,7 +64,7 @@ export default function RtkTest() {
   return (
     <div style={{ maxWidth: 1120, margin: '0 auto', paddingBottom: 32 }}>
       {contextHolder}
-      <Space direction="vertical" size={20} style={{ width: '100%' }}>
+      <Space orientation="vertical" size={20} style={{ width: '100%' }}>
         <div>
           <Tag color="cyan" icon={<ThunderboltOutlined />}>
             RTK CLI
@@ -104,7 +104,7 @@ export default function RtkTest() {
         </Row>
 
         <Card title="常用命令" extra={<Tag color="green">可复制</Tag>}>
-          <Space direction="vertical" size={12} style={{ width: '100%' }}>
+          <Space orientation="vertical" size={12} style={{ width: '100%' }}>
             {commands.map(({ command, description }) => (
               <div
                 key={command}

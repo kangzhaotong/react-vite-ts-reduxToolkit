@@ -11,7 +11,7 @@ export default function Test2() {
   return (
     <div style={{ maxWidth: 760, margin: '0 auto' }}>
       <Card>
-        <Space direction="vertical" size={20} style={{ width: '100%' }}>
+        <Space orientation="vertical" size={20} style={{ width: '100%' }}>
           <div>
             <Tag color="blue">TEST 2</Tag>
             <Title level={2} style={{ margin: '12px 0 6px' }}>
