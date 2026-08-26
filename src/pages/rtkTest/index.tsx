@@ -74,7 +74,16 @@ export default function RtkTest() {
           </Title>
           <Paragraph type="secondary" style={{ marginBottom: 0 }}>
             Rust Token Killer 命令速查与本项目验证结果。RTK
-            在终端中运行，不是前端状态管理库。
+            在终端中运行，不是前端状态管理库。测试结果： rtk 0.45.0 · 154/154
+            内置校验通过 · pnpm test 的 9 个用例通过 · TypeScript 无错误 Token
+            节省率：85.5% 项目测试用例：9 RTK 内置校验：154/154 rtk verify 的 1
+            个用例通过 · TypeScript 无错误 Token 节省率：85.5% 项目测试用例：9
+            RTK 内置校验：154/154 rtk verify 的 1 个用例通过 · TypeScript 无错误
+            Token 节省率：85.5% 项目测试用例：9 RTK 内置校验：154/154 rtk verify
+            的 1 个用例通过 · TypeScript 无错误 Token 节省率：85.5%
+            项目测试用例：9 RTK 内置校验：154/154 rtk verify 的 1 个用例通过 ·
+            TypeScript 无错误 Token 节省率：85.5% 项目测试用例：9 RTK
+            内置校验：154/154
           </Paragraph>
         </div>
 
