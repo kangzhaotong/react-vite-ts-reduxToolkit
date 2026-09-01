@@ -1,17 +1,37 @@
 import React, { useEffect, useRef } from 'react';
-import { config, pointerPrototype } from './staticConfig';
+import { config as defaultConfig, pointerPrototype } from './staticConfig';
 import { getWebGLContext } from './webgl';
+import styles from './index.module.less';
 
 const WebGLFluidSimulation = () => {
-  const canvasRef = useRef(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
-    const canvas: any = canvasRef.current;
+    const canvas = canvasRef.current as HTMLCanvasElement | null;
+    if (!canvas) return;
+    const view = canvas;
+
+    const config = {
+      ...defaultConfig,
+      BACK_COLOR: { ...defaultConfig.BACK_COLOR }
+    };
+
+    const pixelCount = window.innerWidth * window.innerHeight;
+    const dpr = window.devicePixelRatio || 1;
+    if (pixelCount * Math.min(dpr, 2) > 1.6e6 || dpr >= 2) {
+      config.DYE_RESOLUTION = 724;
+      config.BLOOM_ITERATIONS = 5;
+      config.BLOOM_RESOLUTION = 128;
+      config.SUNRAYS_RESOLUTION = 128;
+      config.PRESSURE_ITERATIONS = 14;
+    }
+
     resizeCanvas();
-    let pointers: any[] = [];
-    let splatStack: any[] = [];
+    let pointers: pointerPrototype[] = [];
+    let splatStack: number[] = [];
     pointers.push(new pointerPrototype());
 
-    const { gl, ext } = getWebGLContext(canvas as unknown as HTMLCanvasElement);
+    const { gl, ext } = getWebGLContext(canvas);
+    if (!gl) return;
 
     if (!ext.supportLinearFiltering) {
       config.DYE_RESOLUTION = 512;
@@ -1066,17 +1086,21 @@ const WebGLFluidSimulation = () => {
 
     let lastUpdateTime = Date.now();
     let colorUpdateTimer = 0.0;
-    update();
+    let rafId = 0;
+    let running = true;
 
     function update() {
+      if (!running) return;
       const dt = calcDeltaTime();
       if (resizeCanvas()) initFramebuffers();
       updateColors(dt);
       applyInputs();
       if (!config.PAUSED) step(dt);
       render(null);
-      requestAnimationFrame(update);
+      rafId = requestAnimationFrame(update);
     }
+
+    rafId = requestAnimationFrame(update);
 
     function calcDeltaTime() {
       let now = Date.now();
@@ -1087,11 +1111,12 @@ const WebGLFluidSimulation = () => {
     }
 
     function resizeCanvas() {
-      let width = scaleByPixelRatio(canvas.clientWidth);
-      let height = scaleByPixelRatio(canvas.clientHeight);
-      if (canvas.width != width || canvas.height != height) {
-        canvas.width = width;
-        canvas.height = height;
+      if (!view.clientWidth || !view.clientHeight) return false;
+      let width = scaleByPixelRatio(view.clientWidth);
+      let height = scaleByPixelRatio(view.clientHeight);
+      if (view.width != width || view.height != height) {
+        view.width = width;
+        view.height = height;
         return true;
       }
       return false;
@@ -1110,7 +1135,8 @@ const WebGLFluidSimulation = () => {
     }
 
     function applyInputs() {
-      if (splatStack.length > 0) multipleSplats(splatStack.pop());
+      const splatCount = splatStack.pop();
+      if (splatCount) multipleSplats(splatCount);
 
       pointers.forEach((p) => {
         if (p.moved) {
@@ -1271,7 +1297,7 @@ const WebGLFluidSimulation = () => {
       checkerboardProgram.bind();
       gl.uniform1f(
         checkerboardProgram.uniforms.aspectRatio,
-        canvas.width / canvas.height
+        view.width / view.height
       );
       blit(target);
     }
@@ -1458,72 +1484,86 @@ const WebGLFluidSimulation = () => {
       return radius;
     }
 
-    canvas.addEventListener('mousedown', (e: any) => {
-      let posX = scaleByPixelRatio(e.offsetX);
-      let posY = scaleByPixelRatio(e.offsetY);
+    const getPointerPos = (clientX: number, clientY: number) => {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: scaleByPixelRatio(clientX - rect.left),
+        y: scaleByPixelRatio(clientY - rect.top)
+      };
+    };
+
+    const onMouseDown = (e: MouseEvent) => {
+      const { x, y } = getPointerPos(e.clientX, e.clientY);
       let pointer = pointers.find((p) => p.id == -1);
       if (pointer == null) pointer = new pointerPrototype();
-      updatePointerDownData(pointer, -1, posX, posY);
-    });
+      updatePointerDownData(pointer, -1, x, y);
+    };
 
-    canvas.addEventListener('mousemove', (e: any) => {
+    const onMouseMove = (e: MouseEvent) => {
       let pointer = pointers[0];
       if (!pointer.down) return;
-      let posX = scaleByPixelRatio(e.offsetX);
-      let posY = scaleByPixelRatio(e.offsetY);
-      updatePointerMoveData(pointer, posX, posY);
-    });
+      const { x, y } = getPointerPos(e.clientX, e.clientY);
+      updatePointerMoveData(pointer, x, y);
+    };
 
-    window.addEventListener('mouseup', (e: any) => {
+    const onMouseUp = () => {
       updatePointerUpData(pointers[0]);
-    });
+    };
 
-    canvas.addEventListener('touchstart', (e: any) => {
+    const onTouchStart = (e: TouchEvent) => {
       e.preventDefault();
       const touches = e.targetTouches;
       while (touches.length >= pointers.length)
         pointers.push(new pointerPrototype());
       for (let i = 0; i < touches.length; i++) {
-        let posX = scaleByPixelRatio(touches[i].pageX);
-        let posY = scaleByPixelRatio(touches[i].pageY);
-        updatePointerDownData(
-          pointers[i + 1],
-          touches[i].identifier,
-          posX,
-          posY
-        );
+        const { x, y } = getPointerPos(touches[i].clientX, touches[i].clientY);
+        updatePointerDownData(pointers[i + 1], touches[i].identifier, x, y);
       }
-    });
+    };
 
-    canvas.addEventListener(
-      'touchmove',
-      (e: any) => {
-        e.preventDefault();
-        const touches = e.targetTouches;
-        for (let i = 0; i < touches.length; i++) {
-          let pointer = pointers[i + 1];
-          if (!pointer.down) continue;
-          let posX = scaleByPixelRatio(touches[i].pageX);
-          let posY = scaleByPixelRatio(touches[i].pageY);
-          updatePointerMoveData(pointer, posX, posY);
-        }
-      },
-      false
-    );
+    const onTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      const touches = e.targetTouches;
+      for (let i = 0; i < touches.length; i++) {
+        let pointer = pointers[i + 1];
+        if (!pointer.down) continue;
+        const { x, y } = getPointerPos(touches[i].clientX, touches[i].clientY);
+        updatePointerMoveData(pointer, x, y);
+      }
+    };
 
-    window.addEventListener('touchend', (e: any) => {
+    const onTouchEnd = (e: TouchEvent) => {
       const touches = e.changedTouches;
       for (let i = 0; i < touches.length; i++) {
         let pointer = pointers.find((p) => p.id == touches[i].identifier);
         if (pointer == null) continue;
         updatePointerUpData(pointer);
       }
-    });
+    };
 
-    window.addEventListener('keydown', (e: any) => {
+    const onKeyDown = (e: KeyboardEvent) => {
       if (e.code === 'KeyP') config.PAUSED = !config.PAUSED;
       if (e.key === ' ') splatStack.push(Math.floor(Math.random() * 20) + 5);
-    });
+    };
+
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(rafId);
+        return;
+      }
+      if (!running) return;
+      lastUpdateTime = Date.now();
+      rafId = requestAnimationFrame(update);
+    };
+
+    canvas.addEventListener('mousedown', onMouseDown);
+    canvas.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+    canvas.addEventListener('touchstart', onTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', onTouchMove, { passive: false });
+    window.addEventListener('touchend', onTouchEnd);
+    window.addEventListener('keydown', onKeyDown);
+    document.addEventListener('visibilitychange', onVisibilityChange);
 
     function updatePointerDownData(
       pointer: any,
@@ -1534,8 +1574,8 @@ const WebGLFluidSimulation = () => {
       pointer.id = id;
       pointer.down = true;
       pointer.moved = false;
-      pointer.texcoordX = posX / canvas.width;
-      pointer.texcoordY = 1.0 - posY / canvas.height;
+      pointer.texcoordX = posX / view.width;
+      pointer.texcoordY = 1.0 - posY / view.height;
       pointer.prevTexcoordX = pointer.texcoordX;
       pointer.prevTexcoordY = pointer.texcoordY;
       pointer.deltaX = 0;
@@ -1546,8 +1586,8 @@ const WebGLFluidSimulation = () => {
     function updatePointerMoveData(pointer: any, posX: number, posY: number) {
       pointer.prevTexcoordX = pointer.texcoordX;
       pointer.prevTexcoordY = pointer.texcoordY;
-      pointer.texcoordX = posX / canvas.width;
-      pointer.texcoordY = 1.0 - posY / canvas.height;
+      pointer.texcoordX = posX / view.width;
+      pointer.texcoordY = 1.0 - posY / view.height;
       pointer.deltaX = correctDeltaX(pointer.texcoordX - pointer.prevTexcoordX);
       pointer.deltaY = correctDeltaY(pointer.texcoordY - pointer.prevTexcoordY);
       pointer.moved =
@@ -1559,13 +1599,13 @@ const WebGLFluidSimulation = () => {
     }
 
     function correctDeltaX(delta: number) {
-      let aspectRatio = canvas.width / canvas.height;
+      let aspectRatio = view.width / view.height;
       if (aspectRatio < 1) delta *= aspectRatio;
       return delta;
     }
 
     function correctDeltaY(delta: number) {
-      let aspectRatio = canvas.width / canvas.height;
+      let aspectRatio = view.width / view.height;
       if (aspectRatio > 1) delta /= aspectRatio;
       return delta;
     }
@@ -1656,7 +1696,7 @@ const WebGLFluidSimulation = () => {
     }
 
     function scaleByPixelRatio(input: number) {
-      let pixelRatio = window.devicePixelRatio || 1;
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, 1.75);
       return Math.floor(input * pixelRatio);
     }
 
@@ -1671,25 +1711,24 @@ const WebGLFluidSimulation = () => {
     }
 
     return () => {
-      // window.removeEventListener('resize', resizeCanvas);
-      // window.removeEventListener('pointerdown', pointerDown);
-      // window.removeEventListener('pointermove', pointerMove);
-      // window.removeEventListener('pointerup', pointerUp);
-      // window.removeEventListener('touchstart', touchStart);
-      // window.removeEventListener('touchmove', touchMove);
-      // window.removeEventListener('touchend', touchEnd);
-      // window.removeEventListener('keydown', keyDown);
-      // gl?.getExtension('WEBGL_lose_context')?.loseContext();
+      running = false;
+      cancelAnimationFrame(rafId);
+      canvas.removeEventListener('mousedown', onMouseDown);
+      canvas.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+      canvas.removeEventListener('touchstart', onTouchStart);
+      canvas.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
+      window.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
   }, []);
 
   return (
-    <div className="w-full h-screen bg-black overflow-hidden">
-      <canvas
-        ref={canvasRef}
-        className="w-full h-full cursor-crosshair"
-        style={{ touchAction: 'none', width: '100%', height: '100%' }}
-      />
+    <div className={styles.wrap}>
+      <canvas ref={canvasRef} className={styles.canvas} />
+      <div className={styles.hint}>拖动绘制流体 · 空格溅射 · P 暂停</div>
     </div>
   );
 };

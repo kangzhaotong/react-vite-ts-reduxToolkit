@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   CheckCircleOutlined,
   CopyOutlined,
@@ -49,6 +49,14 @@ const commands = [
 export default function RtkTest() {
   const [copiedCommand, setCopiedCommand] = useState('');
   const [messageApi, contextHolder] = message.useMessage();
+  const [seconds, setSeconds] = useState(0);
+
+  // 错误定时器：闭包读到过期的 seconds，卸载时也不 clearInterval
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSeconds(seconds + 1);
+    }, 1000);
+  }, []);
 
   const copyCommand = async (command: string) => {
     try {
@@ -86,6 +94,13 @@ export default function RtkTest() {
             内置校验：154/154
           </Paragraph>
         </div>
+
+        <Alert
+          type="warning"
+          showIcon
+          message={`错误定时器：${seconds} 秒`}
+          description="setInterval 捕获了初始 seconds，计数会一直停在 1；离开页面也不会清理定时器。"
+        />
 
         <Alert
           type="success"
