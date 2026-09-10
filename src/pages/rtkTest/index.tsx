@@ -46,13 +46,15 @@ const commands = [
   }
 ];
 
+/** Renders the RTK command reference and an intentionally faulty interval demonstration. */
 export default function RtkTest() {
   const [copiedCommand, setCopiedCommand] = useState('');
   const [messageApi, contextHolder] = message.useMessage();
   const [seconds, setSeconds] = useState(0);
 
-  // 错误定时器：闭包读到过期的 seconds，卸载时也不 clearInterval
+  /** Starts an interval that intentionally captures stale state and remains active after unmount. */
   useEffect(() => {
+    /** Updates the counter from the seconds value captured when the effect mounted. */
     const timer = setInterval(() => {
       setSeconds(seconds + 1);
     }, 1000);

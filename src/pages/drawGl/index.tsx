@@ -3,8 +3,10 @@ import { config as defaultConfig, pointerPrototype } from './staticConfig';
 import { getWebGLContext } from './webgl';
 import styles from './index.module.less';
 
+/** Renders an interactive WebGL fluid simulation controlled by pointer, touch, and keyboard input. */
 const WebGLFluidSimulation = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  /** Initializes the simulation resources and event listeners for the mounted canvas. */
   useEffect(() => {
     const canvas = canvasRef.current as HTMLCanvasElement | null;
     if (!canvas) return;
@@ -1089,6 +1091,7 @@ const WebGLFluidSimulation = () => {
     let rafId = 0;
     let running = true;
 
+    /** Advances and renders one frame, then queues the next frame while the simulation is running. */
     function update() {
       if (!running) return;
       const dt = calcDeltaTime();
@@ -1110,6 +1113,11 @@ const WebGLFluidSimulation = () => {
       return dt;
     }
 
+    /**
+     * Synchronizes the drawing buffer with the canvas's nonzero rendered size.
+     *
+     * @returns Whether the drawing-buffer dimensions changed.
+     */
     function resizeCanvas() {
       if (!view.clientWidth || !view.clientHeight) return false;
       let width = scaleByPixelRatio(view.clientWidth);
@@ -1134,6 +1142,7 @@ const WebGLFluidSimulation = () => {
       }
     }
 
+    /** Consumes queued splats and applies pending pointer movement to the fluid fields. */
     function applyInputs() {
       const splatCount = splatStack.pop();
       if (splatCount) multipleSplats(splatCount);
@@ -1293,6 +1302,7 @@ const WebGLFluidSimulation = () => {
       blit(target);
     }
 
+    /** Draws the transparency checkerboard using the current canvas aspect ratio. */
     function drawCheckerboard(target: any) {
       checkerboardProgram.bind();
       gl.uniform1f(
@@ -1484,6 +1494,7 @@ const WebGLFluidSimulation = () => {
       return radius;
     }
 
+    /** Converts viewport client coordinates to canvas-local drawing-buffer pixels. */
     const getPointerPos = (clientX: number, clientY: number) => {
       const rect = canvas.getBoundingClientRect();
       return {
@@ -1492,6 +1503,7 @@ const WebGLFluidSimulation = () => {
       };
     };
 
+    /** Begins the primary mouse interaction at the event's canvas-local position. */
     const onMouseDown = (e: MouseEvent) => {
       const { x, y } = getPointerPos(e.clientX, e.clientY);
       let pointer = pointers.find((p) => p.id == -1);
@@ -1499,6 +1511,7 @@ const WebGLFluidSimulation = () => {
       updatePointerDownData(pointer, -1, x, y);
     };
 
+    /** Updates the primary mouse interaction while its button remains down. */
     const onMouseMove = (e: MouseEvent) => {
       let pointer = pointers[0];
       if (!pointer.down) return;
@@ -1506,10 +1519,12 @@ const WebGLFluidSimulation = () => {
       updatePointerMoveData(pointer, x, y);
     };
 
+    /** Marks the primary mouse interaction as no longer active. */
     const onMouseUp = () => {
       updatePointerUpData(pointers[0]);
     };
 
+    /** Prevents browser touch handling and begins tracking each active touch. */
     const onTouchStart = (e: TouchEvent) => {
       e.preventDefault();
       const touches = e.targetTouches;
@@ -1521,6 +1536,7 @@ const WebGLFluidSimulation = () => {
       }
     };
 
+    /** Prevents browser touch handling and updates tracked active touches. */
     const onTouchMove = (e: TouchEvent) => {
       e.preventDefault();
       const touches = e.targetTouches;
@@ -1532,6 +1548,7 @@ const WebGLFluidSimulation = () => {
       }
     };
 
+    /** Marks pointers for the ended touch identifiers as inactive. */
     const onTouchEnd = (e: TouchEvent) => {
       const touches = e.changedTouches;
       for (let i = 0; i < touches.length; i++) {
@@ -1541,11 +1558,13 @@ const WebGLFluidSimulation = () => {
       }
     };
 
+    /** Toggles simulation pause with P and queues random splats with Space. */
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.code === 'KeyP') config.PAUSED = !config.PAUSED;
       if (e.key === ' ') splatStack.push(Math.floor(Math.random() * 20) + 5);
     };
 
+    /** Pauses animation while hidden and resumes it with a fresh frame timestamp. */
     const onVisibilityChange = () => {
       if (document.hidden) {
         cancelAnimationFrame(rafId);
@@ -1565,6 +1584,7 @@ const WebGLFluidSimulation = () => {
     window.addEventListener('keydown', onKeyDown);
     document.addEventListener('visibilitychange', onVisibilityChange);
 
+    /** Initializes a pointer at drawing-buffer coordinates with a fresh color. */
     function updatePointerDownData(
       pointer: any,
       id: number,
@@ -1583,6 +1603,7 @@ const WebGLFluidSimulation = () => {
       pointer.color = generateColor();
     }
 
+    /** Updates a pointer's normalized coordinates and aspect-corrected movement delta. */
     function updatePointerMoveData(pointer: any, posX: number, posY: number) {
       pointer.prevTexcoordX = pointer.texcoordX;
       pointer.prevTexcoordY = pointer.texcoordY;
@@ -1598,12 +1619,14 @@ const WebGLFluidSimulation = () => {
       pointer.down = false;
     }
 
+    /** Corrects a normalized horizontal movement delta for portrait canvases. */
     function correctDeltaX(delta: number) {
       let aspectRatio = view.width / view.height;
       if (aspectRatio < 1) delta *= aspectRatio;
       return delta;
     }
 
+    /** Corrects a normalized vertical movement delta for landscape canvases. */
     function correctDeltaY(delta: number) {
       let aspectRatio = view.width / view.height;
       if (aspectRatio > 1) delta /= aspectRatio;
@@ -1695,6 +1718,7 @@ const WebGLFluidSimulation = () => {
       };
     }
 
+    /** Converts CSS pixels to integer drawing-buffer pixels with device pixel ratio capped at 1.75. */
     function scaleByPixelRatio(input: number) {
       const pixelRatio = Math.min(window.devicePixelRatio || 1, 1.75);
       return Math.floor(input * pixelRatio);
@@ -1710,6 +1734,7 @@ const WebGLFluidSimulation = () => {
       return hash;
     }
 
+    /** Stops animation, unregisters listeners, and requests release of the WebGL context. */
     return () => {
       running = false;
       cancelAnimationFrame(rafId);
