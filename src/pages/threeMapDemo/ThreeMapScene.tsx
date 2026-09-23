@@ -9,10 +9,7 @@ import { Button } from 'antd';
 import { MinusOutlined, PlusOutlined } from '@ant-design/icons';
 import * as THREE from 'three';
 import * as d3 from 'd3';
-import {
-  CSS2DObject,
-  CSS2DRenderer
-} from 'three/examples/jsm/renderers/CSS2DRenderer';
+import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer';
 import { OrbitControls as MapControls } from 'three/examples/jsm/controls/OrbitControls';
 import { Line2 } from 'three/examples/jsm/lines/Line2';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry';
@@ -31,6 +28,13 @@ import circle2 from '@/assets/images/map-circle-2.png';
 import circle3 from '@/assets/images/map-circle-3.png';
 import chinaSatellite from '@/assets/images/china-satellite.jpg';
 import { pxfix } from './config';
+import { BAR_COLOR_STOPS, createDataBar, getBarColor, haloTexture } from './utils/bars';
+import { createOcean } from './utils/ocean';
+import {
+  createLabelObject,
+  LabelCollisionResolver,
+  type LabelEntry
+} from './utils/labels';
 import styles from './index.module.less';
 
 let width = 0;
@@ -43,10 +47,11 @@ const lookAt = {
   y: -10,
   z: 0
 };
+// 默认机位略拉远，保证全国视角下新疆/东北不被画布边缘裁掉
 const cameraPostion = {
   x: 0,
-  y: -850,
-  z: 830
+  y: -940,
+  z: 900
 };
 const CAMERA_MIN_DISTANCE = 320;
 const CAMERA_MAX_DISTANCE = 2800;
@@ -183,10 +188,13 @@ const getTerrainColor = (heightValue: number, x: number, y: number) => {
 
 const applyTerrainRelief = (
   geometry: THREE.BufferGeometry,
-  baseAltitude: number
+  baseAltitude: number,
+  useSatellite: boolean
 ) => {
   const position = geometry.getAttribute('position') as THREE.BufferAttribute;
   const colors = new Float32Array(position.count * 3);
+  // 叠卫星贴图时顶点色只做轻微着色，纯程序化地形时保留完整地貌配色
+  const tintStrength = useSatellite ? 0.72 : 0.1;
 
   for (let index = 0; index < position.count; index += 1) {
     const x = position.getX(index);
@@ -197,7 +205,7 @@ const applyTerrainRelief = (
     const color = isSurface
       ? getTerrainColor(terrainHeight, x, y).lerp(
           satelliteTerrainTint,
-          0.72
+          tintStrength
         )
       : terrainColors.side;
 
@@ -268,14 +276,14 @@ const mapPalette = {
   baseFill: 0xffffff,
   // 地图基础发光
   baseEmissive: 0x07180f,
-  // 地图悬停颜色
-  hoverFill: 0xa9d982,
+  // 地图悬停颜色（暖色提亮，避免纯绿色盖住卫星贴图）
+  hoverFill: 0xffefc8,
   // 地图悬停发光
-  hoverEmissive: 0x173d24,
+  hoverEmissive: 0x3d3416,
   // 地图激活颜色
-  activeFill: 0xf4d889,
+  activeFill: 0xffd98a,
   // 地图激活发光
-  activeEmissive: 0x4a3510,
+  activeEmissive: 0x5c3f10,
   // 地图底层颜色
   underlayStart: 0x102d24,
   // 地图底层颜色
@@ -299,51 +307,65 @@ const mapPalette = {
   // 标签文字颜色
   labelText: '#f7feff',
   // 标签值颜色
-  labelValue: '#b9efff'
+  labelValue: '#b9efff',
+  // 海面：近岸 → 远海渐变，highlight 为波光颜色
+  ocean: {
+    shallow: '#1a5c70',
+    deep: '#08222d',
+    highlight: '#7fd6f2'
+  }
 };
-// 地图材质
-const geoMaterial = new THREE.MeshStandardMaterial({
-  map: satelliteTexture,
-  color: mapPalette.baseFill,
-  emissive: mapPalette.baseEmissive,
-  vertexColors: true,
-  roughness: 0.68,
-  metalness: 0.05,
-  transparent: true,
-  opacity: 0.86
+type GeoMaterialSet = {
+  base: THREE.MeshStandardMaterial;
+  hover: THREE.MeshStandardMaterial;
+  active: THREE.MeshStandardMaterial;
+};
+// 全国层级叠卫星贴图；省市层级贴图分辨率不够只剩一团模糊，改用程序化地貌顶点色
+const createGeoMaterials = (map: THREE.Texture | null): GeoMaterialSet => ({
+  // 地图材质
+  base: new THREE.MeshStandardMaterial({
+    map,
+    color: mapPalette.baseFill,
+    emissive: mapPalette.baseEmissive,
+    vertexColors: true,
+    roughness: map ? 0.68 : 0.8,
+    metalness: 0.05,
+    transparent: true,
+    opacity: 0.96
+  }),
+  // 地图悬停材质
+  hover: new THREE.MeshStandardMaterial({
+    map,
+    color: mapPalette.hoverFill,
+    emissive: mapPalette.hoverEmissive,
+    vertexColors: true,
+    roughness: 0.62,
+    metalness: 0.04,
+    transparent: true,
+    opacity: 0.98
+  }),
+  // 地图激活材质
+  active: new THREE.MeshStandardMaterial({
+    map,
+    color: mapPalette.activeFill,
+    emissive: mapPalette.activeEmissive,
+    vertexColors: true,
+    roughness: 0.58,
+    metalness: 0.05,
+    transparent: true,
+    opacity: 0.98
+  })
 });
-// 地图悬停材质
-const geoHoverMaterial = new THREE.MeshStandardMaterial({
-  map: satelliteTexture,
-  color: mapPalette.hoverFill,
-  emissive: mapPalette.hoverEmissive,
-  vertexColors: true,
-  roughness: 0.62,
-  metalness: 0.04,
-  transparent: true,
-  opacity: 0.94
-});
-// 地图激活材质
-const geoActiveMaterial = new THREE.MeshStandardMaterial({
-  map: satelliteTexture,
-  color: mapPalette.activeFill,
-  emissive: mapPalette.activeEmissive,
-  vertexColors: true,
-  roughness: 0.58,
-  metalness: 0.05,
-  transparent: true,
-  opacity: 0.95
-});
+const satelliteMaterials = createGeoMaterials(satelliteTexture);
+const plainMaterials = createGeoMaterials(null);
+const geoMaterial = satelliteMaterials.base;
+const geoHoverMaterial = satelliteMaterials.hover;
+const geoActiveMaterial = satelliteMaterials.active;
+const sharedGeoMaterials = new Set<THREE.Material>([
+  ...Object.values(satelliteMaterials),
+  ...Object.values(plainMaterials)
+]);
 
-// 柱状图材质
-const barMaterial = new THREE.MeshPhongMaterial({
-  color: mapPalette.barStart,
-  emissive: mapPalette.barEmissive,
-  specular: 0xf0fdff,
-  shininess: 145,
-  transparent: true,
-  opacity: 0.94
-});
 const raycaster = new THREE.Raycaster();
 // 射线
 const mouse = new THREE.Vector2();
@@ -393,6 +415,46 @@ const provinceGDPData: Record<string, number> = {
   '820000': 6832.16
 };
 
+const getFeatureGDP = (feature: any) =>
+  provinceGDPData[String(feature?.properties?.adcode || '')] || 0;
+
+/** 标签用简称：去掉 省/市/自治区/特别行政区 后缀 */
+const shortRegionName = (name: string) =>
+  name.replace(/(?:壮族|维吾尔|回族)?自治区$|特别行政区$|省$|市$/, '') || name;
+
+const formatGDP = (gdp: number) => `${(gdp / 10000).toFixed(2)} 万亿`;
+
+type RegionInfo = {
+  name: string;
+  gdp: number;
+  rank: number;
+  total: number;
+  share: number;
+};
+
+/** 悬停/选中信息卡数据：在当前层级内按 GDP 排名 */
+const getRegionInfo = (json: any, name: string): RegionInfo | null => {
+  const features: any[] = json?.features || [];
+  const feature = features.find((item) => item.properties?.name === name);
+  if (!feature) {
+    return null;
+  }
+  const gdp = getFeatureGDP(feature);
+  const ranked = features
+    .map(getFeatureGDP)
+    .filter((value) => value > 0)
+    .sort((a, b) => b - a);
+  const sum = ranked.reduce((acc, value) => acc + value, 0);
+
+  return {
+    name,
+    gdp,
+    rank: gdp > 0 ? ranked.indexOf(gdp) + 1 : 0,
+    total: ranked.length,
+    share: sum > 0 ? gdp / sum : 0
+  };
+};
+
 type MapRegionConfig = {
   name: string;
   parentAdcode: string | null;
@@ -436,6 +498,21 @@ const mapDataRegistry: Record<string, MapRegionConfig> = {
 const getRemoteGeoJsonUrl = (adcode: string) =>
   `${REMOTE_GEO_JSON_HOST}/${adcode}_full.json`;
 
+/** 从全国到当前区域的层级链，用于面包屑 */
+const getRegionTrail = (region: MapRegionConfig) => {
+  const trail = [region];
+  let parent = region.parentAdcode
+    ? mapDataRegistry[region.parentAdcode]
+    : undefined;
+  while (parent) {
+    trail.unshift(parent);
+    parent = parent.parentAdcode
+      ? mapDataRegistry[parent.parentAdcode]
+      : undefined;
+  }
+  return trail;
+};
+
 const isSelfBoundaryOnly = (json: any, adcode: string) => {
   const firstFeature = json?.features?.[0];
 
@@ -467,6 +544,10 @@ const ThreeMapDemo = () => {
     mapDataRegistry[ROOT_ADCODE]
   );
   const [zoomPercent, setZoomPercent] = useState(100);
+  const [regionInfo, setRegionInfo] = useState<RegionInfo | null>(null);
+  const hoverNameRef = useRef('');
+  const selectedNameRef = useRef('');
+  const labelResolverRef = useRef(new LabelCollisionResolver());
   const renderer: any = useRef<THREE.WebGLRenderer | null>();
   const renderer2: any = useRef();
   const camera: MutableRefObject<THREE.PerspectiveCamera> | any = useRef();
@@ -488,7 +569,7 @@ const ThreeMapDemo = () => {
   const underlayMaterialRef = useRef<THREE.MeshPhongMaterial | null>(null);
   const underlayLineMaterialRef = useRef<THREE.LineBasicMaterial | null>(null);
   const overlayLineMaterialRef = useRef<THREE.LineBasicMaterial | null>(null);
-  const oceanMaterialRef = useRef<THREE.MeshPhysicalMaterial | null>(null);
+  const oceanRef = useRef<ReturnType<typeof createOcean> | null>(null);
   const cloudLayersRef = useRef<THREE.Mesh[]>([]);
   const terrainRevealRef = useRef({ value: 0 });
   const zoomTweenRef = useRef<any>(null);
@@ -774,27 +855,24 @@ const ThreeMapDemo = () => {
       // updateObj(cylinder.current, 1500);
       cylinder.current.rotation.y += 0.05;
     }
-    geoMaterial.opacity =
-      (0.88 + Math.sin(elapsed * 0.42) * 0.025) *
+    const landOpacity =
+      (0.96 + Math.sin(elapsed * 0.42) * 0.015) *
       terrainRevealRef.current.value;
+    satelliteMaterials.base.opacity = landOpacity;
+    plainMaterials.base.opacity = landOpacity;
     if (underlayMaterialRef.current) {
       underlayMaterialRef.current.opacity =
-        0.58 + Math.sin(elapsed * 0.3) * 0.035;
+        0.8 + Math.sin(elapsed * 0.3) * 0.03;
     }
     if (overlayLineMaterialRef.current) {
       overlayLineMaterialRef.current.opacity =
-        0.32 + Math.sin(elapsed * 0.72) * 0.08;
+        0.62 + Math.sin(elapsed * 0.72) * 0.1;
     }
     if (underlayLineMaterialRef.current) {
       underlayLineMaterialRef.current.opacity =
         0.58 + Math.sin(elapsed * 0.48) * 0.08;
     }
-    if (oceanMaterialRef.current) {
-      oceanMaterialRef.current.opacity =
-        0.76 + Math.sin(elapsed * 0.38) * 0.055;
-      oceanMaterialRef.current.emissiveIntensity =
-        0.35 + Math.sin(elapsed * 0.5) * 0.08;
-    }
+    oceanRef.current?.update(elapsed);
     cloudLayersRef.current.forEach((cloud, index) => {
       const direction = index % 2 === 0 ? 1 : -1;
       cloud.rotation.z += direction * (0.00012 + index * 0.00005);
@@ -807,6 +885,13 @@ const ThreeMapDemo = () => {
     // renderer.autoClear = false;
     renderer.current?.clear();
     renderer.current?.render(scene.current, camera.current);
+    // WebGL 渲染后世界矩阵已更新，此时做标签屏幕空间避让再交给 CSS2D 渲染
+    labelResolverRef.current.update(
+      camera.current,
+      width,
+      height,
+      hoverNameRef.current || selectedNameRef.current
+    );
     css3DRenderer.current?.render(scene.current, camera.current);
     // renderer2.autoClear = false;
     renderer2.current?.clear();
@@ -815,23 +900,10 @@ const ThreeMapDemo = () => {
     animationLoop = requestAnimationFrame(animation);
   };
   const initMesh = () => {
-    const oceanGeometry = new THREE.CircleGeometry(910, 160);
-    const oceanMaterial = new THREE.MeshPhysicalMaterial({
-      color: 0x1d5a70,
-      emissive: 0x0a2533,
-      roughness: 0.2,
-      metalness: 0.04,
-      clearcoat: 0.65,
-      clearcoatRoughness: 0.26,
-      transparent: true,
-      opacity: 0.72
-    });
-    oceanMaterialRef.current = oceanMaterial;
-    const ocean = new THREE.Mesh(oceanGeometry, oceanMaterial);
-    ocean.name = '卫星海面';
-    ocean.position.z = -1.5;
-    ocean.receiveShadow = true;
-    scene.current.add(ocean);
+    const ocean = createOcean(910, mapPalette.ocean);
+    oceanRef.current = ocean;
+    ocean.mesh.position.z = -1.5;
+    scene.current.add(ocean.mesh);
 
     if (cloudTexture) {
       const cloudConfigs = [
@@ -867,13 +939,15 @@ const ThreeMapDemo = () => {
       const glowMaterial = new THREE.MeshBasicMaterial({
         map: glowTexture,
         transparent: true,
-        opacity: 0.92,
+        opacity: 0.5,
         depthWrite: false,
         blending: THREE.AdditiveBlending
       });
       const glowMesh = new THREE.Mesh(glowPlane, glowMaterial);
       glowMesh.name = '地图底部辉光';
-      glowMesh.position.z = -10;
+      // 放在海面之上，给陆地周围一圈由内向外的浅色光
+      glowMesh.position.z = -0.9;
+      glowMesh.renderOrder = -2;
       scene.current.add(glowMesh);
 
       const glowAnim = new TWEEN.Tween(glowMesh.scale)
@@ -923,7 +997,9 @@ const ThreeMapDemo = () => {
 
       const mesh = new THREE.Mesh(plane, planeMaterial);
       mesh.name = '圆圈';
-      mesh.position.z = -7;
+      // 雷达圈放在海面之上、陆地之下，旋转时能透过水面看到
+      mesh.position.z = -0.6;
+      mesh.renderOrder = -1;
       // mesh.rotateX(Math.PI * 1.5);
       // mesh.position.y = -1 + i;
       const meshAnim = new TWEEN.Tween(mesh.rotation).to(
@@ -976,7 +1052,7 @@ const ThreeMapDemo = () => {
     const lineMaterial2 = new THREE.LineBasicMaterial({
       color: mapPalette.innerLine,
       transparent: true,
-      opacity: 0.6
+      opacity: 0.7
     });
     overlayLineMaterialRef.current = lineMaterial2;
     // 南宁市
@@ -1022,6 +1098,8 @@ const ThreeMapDemo = () => {
   };
   const renderMap = (json: any, underlayOption: any, overlayOption: any) => {
     currentGeoJsonRef.current = json;
+    labelResolverRef.current.clear();
+    hoverNameRef.current = '';
     clearObjectGroup(underlayGroup.current);
     clearObjectGroup(mapGroup.current);
     clearObjectGroup(barGeoGroup.current);
@@ -1042,6 +1120,7 @@ const ThreeMapDemo = () => {
   const createMap = (option: any) => {
     const { json, mapMaterial, lineMaterial, altitude, highlight, isBorder } =
       option;
+    const useSatellite = isRootLevel();
     // const len = json.features.length;
     for (const feature of json.features) {
       // for (let i = 0; i < len; i += 1) {
@@ -1087,13 +1166,15 @@ const ThreeMapDemo = () => {
                 if (extrudeGeometry !== sourceGeometry) {
                   sourceGeometry.dispose();
                 }
-                applyTerrainRelief(extrudeGeometry, altitude);
+                applyTerrainRelief(extrudeGeometry, altitude, useSatellite);
                 const terrainedGeometry = extrudeGeometry;
                 extrudeGeometry = smoothTerrainGeometry(terrainedGeometry);
                 if (extrudeGeometry !== terrainedGeometry) {
                   terrainedGeometry.dispose();
                 }
-                applySatelliteUv(extrudeGeometry);
+                if (useSatellite) {
+                  applySatelliteUv(extrudeGeometry);
+                }
                 applyTerrainReliefToLine(linGeometry);
               }
 
@@ -1106,6 +1187,9 @@ const ThreeMapDemo = () => {
               mesh.castShadow = highlight;
               mesh.receiveShadow = highlight;
               const line = new THREE.Line(linGeometry, lineMaterial);
+              // 边界线不参与拾取，避免鼠标经过边界时悬停状态闪烁
+              line.raycast = () => undefined;
+              line.renderOrder = 1;
               // eslint-disable-next-line max-depth
               if (properties.centroid) {
                 const [x, y] = projection(properties.centroid);
@@ -1150,12 +1234,9 @@ const ThreeMapDemo = () => {
   const createShape = (points: any, z: number) => {
     const shape = new THREE.Shape();
     const linGeometry = new THREE.BufferGeometry();
-    const positions = [];
-    // const len = points.length;
-    // for (let i = 0; i < len; i += 1) {
+    const positions: number[] = [];
     const entries = points.entries();
     for (const [i, p] of entries) {
-      // const p = points[i];
       const [x, y] = projection(p);
       if (i === 0) {
         shape.moveTo(x, -y);
@@ -1163,17 +1244,11 @@ const ThreeMapDemo = () => {
         shape.lineTo(x, -y);
       }
       positions.push(x, -y, z);
-      const vertices = new Float32Array([
-        x,
-        -y,
-        z // 第一个顶点的坐标 (x1, y1, z1)
-        // 添加更多的顶点坐标...
-      ]);
-      linGeometry.setAttribute(
-        'position',
-        new THREE.BufferAttribute(vertices, 3)
-      );
     }
+    linGeometry.setAttribute(
+      'position',
+      new THREE.Float32BufferAttribute(positions, 3)
+    );
 
     return {
       shape,
@@ -1378,11 +1453,31 @@ const ThreeMapDemo = () => {
     if (intersects.length > 0) {
       // if (markerGroup.visible) return;
       const { object } = intersects[0];
+      setHoverRegion(object.name);
       changeMapStyle(object.name, 'hover');
     } else {
+      setHoverRegion('');
       changeMapStyle('', 'hover');
     }
   };
+  // 悬停区域变化时同步信息卡与鼠标样式，避免每次 mousemove 都触发 React 更新
+  const setHoverRegion = (name: string) => {
+    if (name === hoverNameRef.current) {
+      return;
+    }
+    hoverNameRef.current = name;
+    if (renderer2.current?.domElement) {
+      renderer2.current.domElement.style.cursor = name ? 'pointer' : 'grab';
+    }
+    syncRegionInfo();
+  };
+  const syncRegionInfo = () => {
+    const name = hoverNameRef.current || selectedNameRef.current;
+    setRegionInfo(name ? getRegionInfo(currentGeoJsonRef.current, name) : null);
+  };
+  const isRootLevel = () => currentAdcodeRef.current === ROOT_ADCODE;
+  const getGeoMaterials = () =>
+    isRootLevel() ? satelliteMaterials : plainMaterials;
   const isMapRenderReady = () => {
     return (
       Boolean(underlayMaterialRef.current) &&
@@ -1399,7 +1494,7 @@ const ThreeMapDemo = () => {
         highlight: false
       },
       overlay: {
-        mapMaterial: geoMaterial,
+        mapMaterial: getGeoMaterials().base,
         lineMaterial: overlayLineMaterialRef.current,
         altitude: 1,
         highlight: true
@@ -1540,25 +1635,51 @@ const ThreeMapDemo = () => {
   };
   // 切换地区选中 材质
   const changeMapStyle = (name: string, type: string) => {
+    if (type === 'click') {
+      selectedNameRef.current = name;
+      syncRegionInfo();
+    }
+    const materials = getGeoMaterials();
     mapGroup.current.traverse((child: any) => {
       if (child.isMesh) {
         // 过滤掉外面线框
         if (type === 'click') {
           child.isSelect = false;
-          child.material = geoMaterial;
+          child.material = materials.base;
           if (child.name === name) {
             child.isSelect = true;
-            child.material = geoActiveMaterial;
+            child.material = materials.active;
           }
         } else if (type === 'hover') {
           if (!child.isSelect) {
-            child.material = geoMaterial;
+            child.material = materials.base;
             if (child.name === name) {
-              child.material = geoHoverMaterial;
+              child.material = materials.hover;
             }
           }
         }
       }
+    });
+    updateRegionLift();
+  };
+  // 悬停/选中的区域整体抬起一点，比只换材质更容易看出当前区域
+  const updateRegionLift = () => {
+    mapGroup.current.children.forEach((county: THREE.Object3D) => {
+      const lift =
+        county.name === selectedNameRef.current
+          ? 10
+          : county.name === hoverNameRef.current
+            ? 6
+            : 0;
+      if (county.userData.liftTarget === lift) {
+        return;
+      }
+      county.userData.liftTarget = lift;
+      county.userData.liftTween?.stop();
+      county.userData.liftTween = new TWEEN.Tween(county.position)
+        .to({ z: lift }, 260)
+        .easing(TWEEN.Easing.Cubic.Out)
+        .start();
     });
   };
   const initAnim = () => {
@@ -1698,11 +1819,11 @@ const ThreeMapDemo = () => {
     geoMaterial.dispose();
     geoHoverMaterial.dispose();
     geoActiveMaterial.dispose();
-    barMaterial.dispose();
+    Object.values(plainMaterials).forEach((material) => material.dispose());
     underlayMaterialRef.current?.dispose();
     underlayLineMaterialRef.current?.dispose();
     overlayLineMaterialRef.current?.dispose();
-    oceanMaterialRef.current = null;
+    oceanRef.current = null;
     cloudLayersRef.current = [];
 
     const arr = scene.current.children.filter((x: any) => x);
@@ -1754,13 +1875,15 @@ const ThreeMapDemo = () => {
       child instanceof Line2
     ) {
       const isSharedMaterial =
-        child.material === geoMaterial ||
-        child.material === geoHoverMaterial ||
-        child.material === geoActiveMaterial ||
+        sharedGeoMaterials.has(child.material) ||
         child.material === underlayMaterialRef.current ||
         child.material === underlayLineMaterialRef.current ||
         child.material === overlayLineMaterialRef.current;
-      if (!isSharedMaterial && child.material.map) {
+      if (
+        !isSharedMaterial &&
+        child.material.map &&
+        child.material.map !== haloTexture
+      ) {
         child.material.map.dispose();
       }
       if (!isSharedMaterial) {
@@ -1769,9 +1892,7 @@ const ThreeMapDemo = () => {
       child.geometry.dispose();
     } else if (
       child.material &&
-      child.material !== geoMaterial &&
-      child.material !== geoHoverMaterial &&
-      child.material !== geoActiveMaterial &&
+      !sharedGeoMaterials.has(child.material) &&
       child.material !== underlayMaterialRef.current &&
       child.material !== underlayLineMaterialRef.current &&
       child.material !== overlayLineMaterialRef.current
@@ -1782,79 +1903,130 @@ const ThreeMapDemo = () => {
     parent.remove(child);
   };
   function initBar(json: any) {
-    const featureCount = json.features.length;
-    const startColor = new THREE.Color(0x00d9ff);
-    const midColor = new THREE.Color(0x00a8ff);
-    const endColor = new THREE.Color(0xff6b6b);
+    const maxGDP = Math.max(...json.features.map(getFeatureGDP), 1);
+    const labels: LabelEntry[] = [];
 
-    const gdpValues = json.features
-      .map((f: any) => {
-        const adcode = String(f.properties?.adcode || '');
-        return provinceGDPData[adcode] || 0;
-      })
-      .filter((v: number) => v > 0);
-
-    const maxGDP = Math.max(...gdpValues, 1);
-
-    for (const [featureIndex, feature] of json.features.entries()) {
+    for (const feature of json.features) {
       const { properties } = feature;
-      const adcode = String(properties?.adcode || '');
-      const gdp = provinceGDPData[adcode] || 0;
-
-      if (gdp <= 0) {
+      if (!properties?.centroid) {
         continue;
       }
+      const gdp = getFeatureGDP(feature);
+      const [x, projectedY] = projection(properties.centroid);
+      const y = -projectedY;
+      // 柱底贴在地形表面（叠加层 altitude 为 1）
+      const baseZ = 1 + getTerrainHeight(x, y) + 0.5;
+      let labelZ = baseZ + 4;
 
-      const [x, y] = projection(properties.centroid);
-      const height = Math.min((gdp / maxGDP) * 35 + 5, 45);
-      const ratio = gdp / maxGDP;
-
-      const boxGeo = new THREE.BoxGeometry(12, 12, height);
-      const boxMaterial = barMaterial.clone();
-
-      let barColor: THREE.Color;
-      if (ratio < 0.5) {
-        barColor = new THREE.Color().lerpColors(startColor, midColor, ratio * 2);
-      } else {
-        barColor = new THREE.Color().lerpColors(midColor, endColor, (ratio - 0.5) * 2);
+      if (gdp > 0) {
+        const ratio = gdp / maxGDP;
+        const barHeight = 16 + Math.pow(ratio, 0.85) * 74;
+        const bar = createDataBar({
+          x,
+          y,
+          baseZ,
+          height: barHeight,
+          color: getBarColor(ratio)
+        });
+        bar.name = properties.name;
+        bar.userData = { gdp, province: properties.name };
+        barGeoGroup.current.add(bar);
+        labelZ = baseZ + barHeight + 5;
       }
 
-      boxMaterial.color.copy(barColor);
-      boxMaterial.emissive.copy(barColor).multiplyScalar(0.35);
-
-      const boxMesh = new THREE.Mesh(boxGeo, boxMaterial);
-      boxMesh.position.x = x;
-      boxMesh.position.y = -y + 15;
-      boxMesh.position.z = height / 2 + 48;
-      boxMesh.userData = { gdp, province: properties.name, height, x, y };
-
-      barGeoGroup.current.add(boxMesh);
-
-      // 添加GDP标签
-      const label = document.createElement('div');
-      label.className = 'gdp-label';
-      label.innerHTML = `<div class="gdp-value">${(gdp / 10000).toFixed(1)}万亿</div><div class="gdp-province">${properties.name}</div>`;
-      label.style.position = 'absolute';
-      label.style.pointerEvents = 'none';
-      label.style.whiteSpace = 'nowrap';
-      label.style.fontSize = '12px';
-      label.style.color = '#b9efff';
-      label.style.textShadow = '0 1px 3px rgba(0,0,0,0.8)';
-      label.style.textAlign = 'center';
-      label.style.lineHeight = '1.2';
-
-      const css2dLabel = new CSS2DObject(label);
-      css2dLabel.position.set(x, -y + 15, height + 65);
-      css2dLabel.visible = true;
-
-      barGeoGroup.current.add(css2dLabel);
+      const entry = createLabelObject(
+        {
+          name: properties.name,
+          label: shortRegionName(properties.name),
+          value: gdp > 0 ? `${(gdp / 10000).toFixed(1)}万亿` : undefined,
+          priority: gdp
+        },
+        { x, y, z: labelZ }
+      );
+      barGeoGroup.current.add(entry.object);
+      labels.push(entry);
     }
+
+    labelResolverRef.current.setEntries(labels);
     if (!scene.current.children.includes(barGeoGroup.current)) {
       scene.current.add(barGeoGroup.current);
     }
   }
+  const regionTrail = getRegionTrail(currentRegion);
+  const hasGDPData = currentRegion.json.features.some(
+    (feature: any) => getFeatureGDP(feature) > 0
+  );
+  const maxGDP = Math.max(...currentRegion.json.features.map(getFeatureGDP), 0);
+
   return (
     <div className={styles.mapWrap}>
+      <div className={styles.titlePanel}>
+        <div className={styles.titleMain}>{currentRegion.name} · GDP 概览</div>
+        <div className={styles.titleSub}>
+          单位：万亿元 · 悬停查看数据 · 点击区域下钻
+        </div>
+        <div className={styles.trail} aria-label="当前层级">
+          {regionTrail.map((region, index) => (
+            <span key={region.name} className={styles.trailItem}>
+              {index > 0 ? <i className={styles.trailArrow} /> : null}
+              <span
+                className={
+                  index === regionTrail.length - 1
+                    ? styles.trailCurrent
+                    : undefined
+                }
+              >
+                {region.name}
+              </span>
+            </span>
+          ))}
+        </div>
+      </div>
+      <div
+        className={`${styles.infoCard} ${regionInfo ? styles.infoCardActive : ''}`}
+        aria-live="polite"
+      >
+        {regionInfo ? (
+          <>
+            <div className={styles.infoName}>{regionInfo.name}</div>
+            {regionInfo.gdp > 0 ? (
+              <>
+                <div className={styles.infoValue}>
+                  {formatGDP(regionInfo.gdp)}
+                </div>
+                <div className={styles.infoMeta}>
+                  <span>
+                    排名 <strong>{regionInfo.rank}</strong> / {regionInfo.total}
+                  </span>
+                  <span>
+                    占比 <strong>{(regionInfo.share * 100).toFixed(1)}%</strong>
+                  </span>
+                </div>
+              </>
+            ) : (
+              <div className={styles.infoEmpty}>暂无 GDP 数据</div>
+            )}
+          </>
+        ) : (
+          <div className={styles.infoEmpty}>移入区域查看数据</div>
+        )}
+      </div>
+      {hasGDPData ? (
+        <div className={styles.legend} aria-label="GDP 图例">
+          <div className={styles.legendTitle}>GDP（万亿元）</div>
+          <div
+            className={styles.legendBar}
+            style={{
+              background: `linear-gradient(90deg, ${BAR_COLOR_STOPS.join(', ')})`
+            }}
+          />
+          <div className={styles.legendScale}>
+            <span>0</span>
+            <span>{(maxGDP / 20000).toFixed(1)}</span>
+            <span>{(maxGDP / 10000).toFixed(1)}</span>
+          </div>
+        </div>
+      ) : null}
       <div className={`${styles.tabs} ${styles.tabsBottom}`}>
         {currentRegion.parentAdcode ? (
           <Button
@@ -1908,6 +2080,7 @@ const ThreeMapDemo = () => {
       </div>
       <div className={styles.mapHint}>拖动旋转 · 滚轮缩放 · 点击区域下钻</div>
       <div ref={divRef} className={styles.map} />
+      <div className={styles.vignette} aria-hidden="true" />
       <canvas ref={nameRef} className={styles.name} />
     </div>
   );
